@@ -65,17 +65,18 @@ func handlePostRequest(c *gin.Context) {
 	}
 	defer resp.Body.Close()
 
-	respBody, err := io.ReadAll(resp.Body)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to read response"})
-		return
+	c.Status(resp.StatusCode)
+
+	for key, values := range resp.Header {
+		for _, value := range values {
+			c.Header(key, value)
+		}
 	}
 
-	c.JSON(resp.StatusCode, gin.H{
-		"status":  resp.Status,
-		"body":    string(respBody),
-		"headers": resp.Header,
-	})
+	_, err = io.Copy(c.Writer, resp.Body)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to write response body"})
+	}
 }
 
 func prepareReqBody(req RequestPayload) (body []byte, err error) {
