@@ -5,7 +5,16 @@
     url = "https://test.com"
     merchant_id = "asd"
     api_key = "zxc"
+
 [andy.j]
     url = "https://test.com"
     merchant_id = "fgh"
     api_key = "vbn"
+
+[andy.telegram]
+    chat_id = "12345"
+    bot_token = "123:asd-zxc"
+
+[andy.energy]
+    url = "https://test.com"
+    token = "asd"

@@ -1,0 +1,9 @@
+package andy
+
+const (
+	base58Alphabet    = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
+	tronscanURL       = "https://tronscan.org/#/transaction/"
+	trongridWalletURL = "https://apilist.tronscanapi.com/api/account/wallet?address="
+	botReqURL         = "https://api.telegram.org/bot%s/sendMessage"
+	collectAmong      = 3000.0
+)
