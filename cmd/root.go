@@ -27,7 +27,7 @@ func initConfig() {
 	if configFile != "" {
 		viper.SetConfigFile(configFile)
 	} else {
-		viper.SetConfigName("local")
+		viper.SetConfigName("config")
 		viper.AddConfigPath("./config")
 		viper.SetConfigType("toml")
 

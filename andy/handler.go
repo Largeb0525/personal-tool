@@ -145,10 +145,23 @@ func eventHandler(c *gin.Context) {
 		return
 	}
 
+	platform := c.Param("platform")
 	usdtMsg := ""
 	energyMsg := ""
-	if usdtFloat > collectAmong {
-		usdtMsg = "amount > threshold , ask energy"
+	threshold := 3000.0
+	name := ""
+
+	switch platform {
+	case "b":
+		threshold = collectAmong
+		name = BName
+	case "i":
+		threshold = collectAmongIndia
+		name = IName
+	}
+
+	if usdtFloat >= threshold {
+		usdtMsg = "amount >= threshold , ask energy"
 		energyMsg = AskEnergy(transactionData.ToAddress)
 		// ask energy
 	} else {
@@ -162,7 +175,7 @@ func eventHandler(c *gin.Context) {
 			if err != nil {
 				usdtMsg = "[error] " + err.Error()
 			} else {
-				if walletUsdtFloat > collectAmong {
+				if walletUsdtFloat >= threshold {
 					usdtFloat = walletUsdtFloat
 					usdtMsg = walletUsdt
 					energyMsg = AskEnergy(transactionData.ToAddress)
@@ -175,16 +188,16 @@ func eventHandler(c *gin.Context) {
 	}
 
 	message := fmt.Sprintf(
-		`🟢 Transaction Notification
+		`🟢 %s Transaction Notification
 Amount: %s
 From: %s
 To: %s
 Wallet Msg: %s
 Energy Msg: %s`,
-		transactionData.USDT, transactionData.FromAddress, transactionData.ToAddress, usdtMsg, energyMsg)
+		name, transactionData.USDT, transactionData.FromAddress, transactionData.ToAddress, usdtMsg, energyMsg)
 
 	payload := TelegramMessagePayload{
-		ChatID: viper.GetString("andy.telegram.chat_id"),
+		ChatID: TelegramChatId,
 		Text:   message,
 		ReplyMarkup: InlineKeyboardMarkup{
 			InlineKeyboard: [][]InlineKeyboardButton{
@@ -324,10 +337,10 @@ func AskEnergy(address string) (energyMsg string) {
 	// 準備 form data
 	form := url.Values{}
 	form.Set("address", address)
-	form.Set("token", viper.GetString("andy.energy.token"))
+	form.Set("token", EnergyToken)
 
 	// 建立 request
-	req, err := http.NewRequest("POST", viper.GetString("andy.energy.url"), bytes.NewBufferString(form.Encode()))
+	req, err := http.NewRequest("POST", EnergyUrl, bytes.NewBufferString(form.Encode()))
 	if err != nil {
 		energyMsg = fmt.Sprintf("failed to create request: %s", err.Error())
 		return
@@ -370,7 +383,7 @@ func SendTelegramMessage(payload TelegramMessagePayload) error {
 		return fmt.Errorf("failed to marshal payload: %w", err)
 	}
 
-	url := fmt.Sprintf(botReqURL, viper.GetString("andy.telegram.bot_token"))
+	url := fmt.Sprintf(botReqURL, TelegramBotToken)
 	resp, err := http.Post(url, "application/json", bytes.NewBuffer(bodyBytes))
 	if err != nil {
 		return fmt.Errorf("failed to send request: %w", err)

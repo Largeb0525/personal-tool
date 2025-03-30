@@ -6,4 +6,14 @@ const (
 	trongridWalletURL = "https://apilist.tronscanapi.com/api/account/wallet?address="
 	botReqURL         = "https://api.telegram.org/bot%s/sendMessage"
 	collectAmong      = 3000.0
+	collectAmongIndia = 100.0
+)
+
+var (
+	TelegramChatId   = ""
+	EnergyToken      = ""
+	EnergyUrl        = ""
+	TelegramBotToken = ""
+	BName            = ""
+	IName            = ""
 )
