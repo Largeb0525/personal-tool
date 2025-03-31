@@ -11,6 +11,8 @@ import (
 func InitRouter() *gin.Engine {
 	r := gin.Default()
 	fillParameters()
+	go andy.ScheduleDailyReport()
+
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"message": "pong",

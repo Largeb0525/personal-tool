@@ -87,3 +87,8 @@ type TelegramMessagePayload struct {
 	Text        string               `json:"text"`
 	ReplyMarkup InlineKeyboardMarkup `json:"reply_markup"`
 }
+
+type thresholdRequest struct {
+	BThreshold float64 `json:"bThreshold"`
+	IThreshold float64 `json:"iThreshold"`
+}

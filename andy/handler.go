@@ -153,16 +153,16 @@ func eventHandler(c *gin.Context) {
 
 	switch platform {
 	case "b":
-		threshold = collectAmong
+		threshold = CollectAmong
 		name = BName
 	case "i":
-		threshold = collectAmongIndia
+		threshold = CollectAmongIndia
 		name = IName
 	}
 
 	if usdtFloat >= threshold {
 		usdtMsg = "amount >= threshold , ask energy"
-		energyMsg = AskEnergy(transactionData.ToAddress)
+		energyMsg = AskEnergy(transactionData.ToAddress, platform)
 		// ask energy
 	} else {
 		// wait trongrid 7s
@@ -178,7 +178,7 @@ func eventHandler(c *gin.Context) {
 				if walletUsdtFloat >= threshold {
 					usdtFloat = walletUsdtFloat
 					usdtMsg = walletUsdt
-					energyMsg = AskEnergy(transactionData.ToAddress)
+					energyMsg = AskEnergy(transactionData.ToAddress, platform)
 				} else {
 					usdtMsg = walletUsdt
 					energyMsg = "pass"
@@ -333,7 +333,7 @@ func getUSDTBalance(tokens []TokenInfo) string {
 	return ""
 }
 
-func AskEnergy(address string) (energyMsg string) {
+func AskEnergy(address string, platform string) (energyMsg string) {
 	// 準備 form data
 	form := url.Values{}
 	form.Set("address", address)
@@ -371,6 +371,12 @@ func AskEnergy(address string) (energyMsg string) {
 			return
 		}
 		energyMsg = fmt.Sprintf("success, order id: %s", result.OrderID)
+		switch platform {
+		case "b":
+			BDailyCount++
+		case "i":
+			IDailyCount++
+		}
 		return
 	}
 	energyMsg = fmt.Sprintf("request failed with status code: %d", resp.StatusCode)
@@ -402,4 +408,27 @@ func SendTelegramMessage(payload TelegramMessagePayload) error {
 	}
 	log.Printf("Failed to send message: %d, %s\n", resp.StatusCode, desc)
 	return fmt.Errorf("telegram error: %s", desc)
+}
+
+func thresholdHandler(c *gin.Context) {
+	var payload thresholdRequest
+
+	err := c.ShouldBindJSON(&payload)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if payload.BThreshold != 0.0 {
+		CollectAmong = payload.BThreshold
+	}
+	if payload.IThreshold != 0.0 {
+		CollectAmongIndia = payload.IThreshold
+	}
+
+	c.JSON(http.StatusOK, gin.H{"BThreshold": CollectAmong, "IThreshold": CollectAmongIndia})
+}
+
+func dailyReportHandler(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{BName: BDailyCount, IName: IDailyCount})
 }
