@@ -31,6 +31,9 @@ func ScheduleDailyReport() {
 		payload := TelegramMessagePayload{
 			ChatID: TelegramChatId,
 			Text:   message,
+			ReplyMarkup: InlineKeyboardMarkup{
+				InlineKeyboard: [][]InlineKeyboardButton{},
+			},
 		}
 		err = SendTelegramMessage(payload)
 		if err != nil {
