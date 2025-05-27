@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/Largeb0525/personal-tool/cmd"
+	"github.com/Largeb0525/personal-tool/database"
 	"github.com/Largeb0525/personal-tool/internal"
 
 	"github.com/spf13/viper"
@@ -15,6 +16,9 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
+
+	db := database.InitDatabase()
+	defer db.Close()
 
 	port := viper.GetString("server.port")
 	if port == "" {

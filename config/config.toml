@@ -26,3 +26,14 @@
 [andy.energy]
     url = "https://test.com"
     token = "asd"
+
+[database]
+    host = "127.0.0.1"
+    port = "3306"
+    user = "root"
+    password = ""
+    dbname = "tron"
+
+[quicknode]
+    api_key = "asd"
+    quick_alert_id = "zxc"
