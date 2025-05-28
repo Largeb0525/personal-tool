@@ -99,50 +99,50 @@ func quickAlertsEventHandler(c *gin.Context) {
 		return
 	}
 
-	walletMsg := ""
-	energyMsg := ""
-	threshold := 3000.0
-	name := ""
-	orderID := ""
-	askEnergySuccess := false
+	go func(transactionData ParsedTransaction, platform string, usdtFloat float64) {
+		walletMsg := ""
+		energyMsg := ""
+		threshold := 3000.0
+		name := ""
+		orderID := ""
+		askEnergySuccess := false
 
-	switch platform {
-	case "b":
-		threshold = CollectAmong
-		name = BName
-	case "i":
-		threshold = CollectAmongIndia
-		name = IName
-	}
+		switch platform {
+		case "b":
+			threshold = CollectAmong
+			name = BName
+		case "i":
+			threshold = CollectAmongIndia
+			name = IName
+		}
 
-	if usdtFloat >= threshold {
-		walletMsg = "amount >= threshold , ask energy"
-		energyMsg, orderID, askEnergySuccess = AskEnergy(transactionData.ToAddress)
-		// ask energy
-	} else {
-		// wait trongrid 7s
-		time.Sleep(time.Second * 7)
-		walletUsdt, err := CheckTronAddressUSDT(transactionData.ToAddress)
-		if err != nil {
-			walletMsg = "[error] " + err.Error()
-		} else if walletUsdt == "" {
-			walletMsg = "wallet has no USDT"
+		if usdtFloat >= threshold {
+			walletMsg = "amount >= threshold , ask energy"
+			energyMsg, orderID, askEnergySuccess = AskEnergy(transactionData.ToAddress)
+			// ask energy
 		} else {
-			walletUsdtFloat, err := strconv.ParseFloat(walletUsdt, 64)
+			// wait trongrid 7s
+			time.Sleep(time.Second * 7)
+			walletUsdt, err := CheckTronAddressUSDT(transactionData.ToAddress)
 			if err != nil {
 				walletMsg = "[error] " + err.Error()
+			} else if walletUsdt == "" {
+				walletMsg = "wallet has no USDT"
 			} else {
-				if walletUsdtFloat >= threshold {
-					walletMsg = walletUsdt
-					energyMsg, orderID, askEnergySuccess = AskEnergy(transactionData.ToAddress)
+				walletUsdtFloat, err := strconv.ParseFloat(walletUsdt, 64)
+				if err != nil {
+					walletMsg = "[error] " + err.Error()
 				} else {
-					walletMsg = walletUsdt
-					energyMsg = "pass"
+					if walletUsdtFloat >= threshold {
+						walletMsg = walletUsdt
+						energyMsg, orderID, askEnergySuccess = AskEnergy(transactionData.ToAddress)
+					} else {
+						walletMsg = walletUsdt
+						energyMsg = "pass"
+					}
 				}
 			}
 		}
-	}
-	go func() {
 		db := database.GetDB()
 		database.InsertEventHistory(db, database.EventHistory{
 			TransactionHash:  transactionData.TransactionHash,
@@ -154,23 +154,24 @@ func quickAlertsEventHandler(c *gin.Context) {
 			OrderID:          orderID,
 			AskEnergySuccess: askEnergySuccess,
 		})
-	}()
 
-	message := fmt.Sprintf(
-		`🟢 %s Transaction Notification
+		message := fmt.Sprintf(
+			`🟢 %s Transaction Notification
 %s
 Amount: %s
 From: %s
 To: %s
 Wallet Msg: %s
 Energy Msg: %s`,
-		name, transactionData.URL, transactionData.USDT, transactionData.FromAddress, transactionData.ToAddress, walletMsg, energyMsg)
+			name, transactionData.URL, transactionData.USDT, transactionData.FromAddress, transactionData.ToAddress, walletMsg, energyMsg)
 
-	err = telegram.SendTelegramMessage(message)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
+		err = telegram.SendTelegramMessage(message)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+	}(transactionData, platform, usdtFloat)
+
 	c.JSON(http.StatusOK, gin.H{"message": "success"})
 }
 
