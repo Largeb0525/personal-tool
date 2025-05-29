@@ -13,5 +13,6 @@ func AndyRouter(r *gin.Engine) {
 		routerGroup.GET("/event/daily-report", dailyReportHandler)
 		routerGroup.POST("/refresh/:platform", refreshHandler)
 		routerGroup.POST("/upload/address/:platform", uploadAddressCsvFileHandler)
+		routerGroup.POST("/freezeTRX", freezeHandler)
 	}
 }

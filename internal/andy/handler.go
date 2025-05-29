@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"github.com/Largeb0525/personal-tool/database"
-	quicknode "github.com/Largeb0525/personal-tool/internal/external/quickNode"
+	"github.com/Largeb0525/personal-tool/internal/external/quickNode"
 	"github.com/Largeb0525/personal-tool/internal/external/telegram"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
@@ -309,14 +309,14 @@ func uploadAddressCsvFileHandler(c *gin.Context) {
 
 	if updateAlert == "true" {
 		go func() {
-			quickAlert, err := quicknode.GetQuickAlertInfo()
+			quickAlert, err := quickNode.GetQuickAlertInfo()
 			if err != nil {
 				log.Println(err)
 				return
 			}
-			addresses := quicknode.ParseExpressionToAddresses(quickAlert.Expression)
+			addresses := quickNode.ParseExpressionToAddresses(quickAlert.Expression)
 			addresses = append(addresses, newHexAddresses...)
-			err = quicknode.PatchQuickAlert(addresses)
+			err = quickNode.PatchQuickAlert(addresses)
 			if err != nil {
 				log.Println(err)
 				return
@@ -326,4 +326,15 @@ func uploadAddressCsvFileHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "success", "newAddress": newAddresses, "insertFailedAddresses": insertFailedAddresses})
+}
+
+func freezeHandler(c *gin.Context) {
+	tx := freezeBalance()
+	sign, err := signTransaction(tx.TxID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	broadcastTransaction(tx, sign)
+	c.JSON(http.StatusOK, gin.H{"message": "success"})
 }

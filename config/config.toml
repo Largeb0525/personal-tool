@@ -36,4 +36,9 @@
 
 [quicknode]
     api_key = "asd"
+    app_id = "zxc"
     quick_alert_id = "zxc"
+
+[tron]
+    energy_address = ""
+    private_key = ""

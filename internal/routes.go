@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/Largeb0525/personal-tool/internal/andy"
-	quicknode "github.com/Largeb0525/personal-tool/internal/external/quickNode"
+	"github.com/Largeb0525/personal-tool/internal/external/quickNode"
 	"github.com/Largeb0525/personal-tool/internal/external/telegram"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
@@ -29,10 +29,13 @@ func InitRouter() *gin.Engine {
 			"andy_i_name":        maskStart(andy.IName),
 			"energy_token":       maskStart(andy.EnergyToken),
 			"energy_url":         maskStart(andy.EnergyUrl),
+			"energy_address":     maskStart(andy.EnergyAddress),
+			"tron_private_key":   maskStart(andy.TronPrivateKey),
 			"telegram_chat_id":   maskStart(telegram.TelegramChatId),
 			"telegram_bot_token": maskStart(telegram.TelegramBotToken),
-			"quicknode_api_key":  maskStart(quicknode.ApiKey),
-			"quicknode_alert_id": maskStart(quicknode.QuickAlertID),
+			"quicknode_api_key":  maskStart(quickNode.ApiKey),
+			"quicknode_app_id":   maskStart(quickNode.AppID),
+			"quicknode_alert_id": maskStart(quickNode.QuickAlertID),
 		})
 	})
 
@@ -46,10 +49,13 @@ func fillParameters() {
 	andy.IName = viper.GetString("andy.i.name")
 	andy.EnergyToken = viper.GetString("andy.energy.token")
 	andy.EnergyUrl = viper.GetString("andy.energy.url")
+	andy.EnergyAddress = viper.GetString("tron.energy_address")
+	andy.TronPrivateKey = viper.GetString("tron.private_key")
 	telegram.TelegramChatId = viper.GetString("andy.telegram.chat_id")
 	telegram.TelegramBotToken = viper.GetString("andy.telegram.bot_token")
-	quicknode.ApiKey = viper.GetString("quicknode.api_key")
-	quicknode.QuickAlertID = viper.GetString("quicknode.quick_alert_id")
+	quickNode.ApiKey = viper.GetString("quicknode.api_key")
+	quickNode.AppID = viper.GetString("quicknode.app_id")
+	quickNode.QuickAlertID = viper.GetString("quicknode.quick_alert_id")
 }
 
 func maskStart(s string) string {

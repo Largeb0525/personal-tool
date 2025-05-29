@@ -1,4 +1,4 @@
-package quicknode
+package quickNode
 
 type QuickAlert struct {
 	ID           string        `json:"id"`
@@ -24,4 +24,31 @@ type PatchQuickAlertRequest struct {
 	Name           string   `json:"name,omitempty"`
 	Expression     string   `json:"expression"`
 	DestinationIDs []string `json:"destinationIds,omitempty"`
+}
+
+type FreezeRequest struct {
+	OwnerAddress  string `json:"owner_address,required"`
+	Resource      string `json:"resource,required"`
+	FrozenBalance int64  `json:"frozen_balance,required"`
+	Visible       bool   `json:"visible"`
+}
+
+type FreezeResponse struct {
+	TxID       string                 `json:"txid"`
+	RawData    map[string]interface{} `json:"raw_data"`
+	RawDataHex string                 `json:"raw_data_hex"`
+}
+
+type BroadcastRequest struct {
+	TxID       string                 `json:"txid"`
+	RawData    map[string]interface{} `json:"raw_data"`
+	RawDataHex string                 `json:"raw_data_hex"`
+	Signature  string                 `json:"signature,required"`
+	Visible    bool                   `json:"visible"`
+}
+
+type BroadcastResponse struct {
+	Txid    string `json:"txid"`
+	Code    string `json:"code,omitempty"`
+	Message string `json:"message,omitempty"`
 }

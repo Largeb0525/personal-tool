@@ -14,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Largeb0525/personal-tool/internal/external/quickNode"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 )
@@ -185,4 +186,36 @@ func getPlatform(c *gin.Context) string {
 	default:
 		return ""
 	}
+}
+
+func freezeBalance() quickNode.FreezeResponse {
+	req := quickNode.FreezeRequest{
+		OwnerAddress:  EnergyAddress,
+		Resource:      "ENERGY",
+		FrozenBalance: 1000000,
+		Visible:       true,
+	}
+
+	tx, err := quickNode.CreateFreezeTx(req)
+	if err != nil {
+		log.Println(err)
+	} else {
+		log.Printf("freeze tx: %v", tx)
+	}
+	return tx
+}
+
+func broadcastTransaction(tx quickNode.FreezeResponse, sign string) {
+	req := quickNode.BroadcastRequest{
+		TxID:       tx.TxID,
+		RawData:    tx.RawData,
+		RawDataHex: tx.RawDataHex,
+		Signature:  sign,
+		Visible:    true,
+	}
+	result, err := quickNode.BroadcastTransaction(req)
+	if err != nil {
+		log.Println(err)
+	}
+	log.Printf("broadcast result: %v", result)
 }

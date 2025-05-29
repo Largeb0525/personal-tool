@@ -4,8 +4,11 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"math/big"
 	"strings"
+
+	"github.com/ethereum/go-ethereum/crypto"
 )
 
 func base58Encode(input []byte) string {
@@ -102,4 +105,28 @@ func getUSDTBalance(tokens []TokenInfo) string {
 		}
 	}
 	return ""
+}
+
+func signTransaction(txIDHex string) (string, error) {
+	txIDBytes, err := hex.DecodeString(txIDHex)
+	if err != nil {
+		return "", fmt.Errorf("decode txID error: %w", err)
+	}
+
+	privKeyBytes, err := hex.DecodeString(TronPrivateKey)
+	if err != nil {
+		return "", fmt.Errorf("decode privKey error: %w", err)
+	}
+
+	privKey, err := crypto.ToECDSA(privKeyBytes)
+	if err != nil {
+		return "", fmt.Errorf("parse privKey error: %w", err)
+	}
+
+	sig, err := crypto.Sign(txIDBytes, privKey)
+	if err != nil {
+		return "", fmt.Errorf("sign error: %w", err)
+	}
+
+	return hex.EncodeToString(sig), nil
 }

@@ -1,4 +1,4 @@
-package quicknode
+package quickNode
 
 import (
 	"fmt"

@@ -13,4 +13,6 @@ var (
 	IName             = ""
 	CollectAmong      = 3000.0
 	CollectAmongIndia = 300.0
+	EnergyAddress     = ""
+	TronPrivateKey    = ""
 )

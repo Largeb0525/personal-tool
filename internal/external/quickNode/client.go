@@ -1,4 +1,4 @@
-package quicknode
+package quickNode
 
 import (
 	"bytes"
@@ -70,4 +70,48 @@ func PatchQuickAlert(addresses []string) error {
 	}
 
 	return nil
+}
+
+func CreateFreezeTx(req FreezeRequest) (tx FreezeResponse, err error) {
+	body, _ := json.Marshal(req)
+	url := fmt.Sprintf(freezeBalanceURL, AppID)
+	httpReq, err := http.NewRequest("POST", url, bytes.NewBuffer(body))
+	if err != nil {
+		return tx, fmt.Errorf("create request error: %w", err)
+	}
+	httpReq.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(httpReq)
+	if err != nil {
+		return tx, fmt.Errorf("request failed: %w", err)
+	}
+	defer resp.Body.Close()
+
+	err = json.NewDecoder(resp.Body).Decode(&tx)
+	if err != nil {
+		return tx, err
+	}
+	return tx, nil
+}
+
+func BroadcastTransaction(req BroadcastRequest) (result BroadcastResponse, err error) {
+	body, _ := json.Marshal(req)
+	url := fmt.Sprintf(broadcastURL, AppID)
+	httpReq, err := http.NewRequest("POST", url, bytes.NewBuffer(body))
+	if err != nil {
+		return result, fmt.Errorf("create request error: %w", err)
+	}
+	httpReq.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(httpReq)
+	if err != nil {
+		return result, fmt.Errorf("request failed: %w", err)
+	}
+	defer resp.Body.Close()
+
+	err = json.NewDecoder(resp.Body).Decode(&result)
+	if err != nil {
+		return result, err
+	}
+	return result, nil
 }
