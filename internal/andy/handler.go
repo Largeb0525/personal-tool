@@ -328,8 +328,13 @@ func uploadAddressCsvFileHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "success", "newAddress": newAddresses, "insertFailedAddresses": insertFailedAddresses})
 }
 
-func freezeHandler(c *gin.Context) {
-	tx := freezeBalance()
+func freezeTRXHandler(c *gin.Context) {
+	// TODO 待訂凍多少
+	tx, err := freezeBalance(1000000)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 	sign, err := signTransaction(tx.TxID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

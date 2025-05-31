@@ -188,11 +188,11 @@ func getPlatform(c *gin.Context) string {
 	}
 }
 
-func freezeBalance() quickNode.FreezeResponse {
+func freezeBalance(balance int64) (quickNode.FreezeResponse, error) {
 	req := quickNode.FreezeRequest{
 		OwnerAddress:  EnergyAddress,
 		Resource:      "ENERGY",
-		FrozenBalance: 1000000,
+		FrozenBalance: balance,
 		Visible:       true,
 	}
 
@@ -202,7 +202,7 @@ func freezeBalance() quickNode.FreezeResponse {
 	} else {
 		log.Printf("freeze tx: %v", tx)
 	}
-	return tx
+	return tx, err
 }
 
 func broadcastTransaction(tx quickNode.FreezeResponse, sign string) {

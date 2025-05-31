@@ -73,7 +73,10 @@ func PatchQuickAlert(addresses []string) error {
 }
 
 func CreateFreezeTx(req FreezeRequest) (tx FreezeResponse, err error) {
-	body, _ := json.Marshal(req)
+	body, err := json.Marshal(req)
+	if err != nil {
+		return tx, fmt.Errorf("json marshal failed: %w", err)
+	}
 	url := fmt.Sprintf(freezeBalanceURL, AppID)
 	httpReq, err := http.NewRequest("POST", url, bytes.NewBuffer(body))
 	if err != nil {
@@ -89,7 +92,7 @@ func CreateFreezeTx(req FreezeRequest) (tx FreezeResponse, err error) {
 
 	err = json.NewDecoder(resp.Body).Decode(&tx)
 	if err != nil {
-		return tx, err
+		return tx, fmt.Errorf("json decode failed: %w", err)
 	}
 	return tx, nil
 }
