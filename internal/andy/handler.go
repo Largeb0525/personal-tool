@@ -329,17 +329,118 @@ func uploadAddressCsvFileHandler(c *gin.Context) {
 }
 
 func freezeTRXHandler(c *gin.Context) {
-	// TODO 待訂凍多少
-	tx, err := freezeBalance(1000000)
+	var payload struct {
+		Trx int64 `json:"trx"`
+	}
+
+	err := c.ShouldBindJSON(&payload)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	tx, err := freezeBalance(payload.Trx)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
 	sign, err := signTransaction(tx.TxID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	broadcastTransaction(tx, sign)
-	c.JSON(http.StatusOK, gin.H{"message": "success"})
+
+	broadcastReq := quickNode.BroadcastRequest{
+		TxID:       tx.TxID,
+		RawData:    tx.RawData,
+		RawDataHex: tx.RawDataHex,
+		Signature:  sign,
+		Visible:    true,
+	}
+	resp, err := quickNode.BroadcastTransaction(broadcastReq)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, resp)
+}
+
+func delegateResourceHandler(c *gin.Context) {
+	var payload struct {
+		Address string `json:"address"`
+	}
+
+	err := c.ShouldBindJSON(&payload)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	tx, err := delegateResource(payload.Address)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	sign, err := signTransaction(tx.TxID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	broadcastReq := quickNode.BroadcastRequest{
+		TxID:       tx.TxID,
+		RawData:    tx.RawData,
+		RawDataHex: tx.RawDataHex,
+		Signature:  sign,
+		Visible:    true,
+	}
+	resp, err := quickNode.BroadcastTransaction(broadcastReq)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, resp)
+}
+
+func undelegateResourceHandler(c *gin.Context) {
+	var payload struct {
+		Address string `json:"address"`
+	}
+
+	err := c.ShouldBindJSON(&payload)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	tx, err := undelegateResource(payload.Address)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	sign, err := signTransaction(tx.TxID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	broadcastReq := quickNode.BroadcastRequest{
+		TxID:       tx.TxID,
+		RawData:    tx.RawData,
+		RawDataHex: tx.RawDataHex,
+		Signature:  sign,
+		Visible:    true,
+	}
+	resp, err := quickNode.BroadcastTransaction(broadcastReq)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, resp)
 }

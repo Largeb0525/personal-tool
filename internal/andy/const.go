@@ -7,12 +7,13 @@ const (
 )
 
 var (
-	EnergyToken       = ""
-	EnergyUrl         = ""
-	BName             = ""
-	IName             = ""
-	CollectAmong      = 3000.0
-	CollectAmongIndia = 300.0
-	EnergyAddress     = ""
-	TronPrivateKey    = ""
+	EnergyToken             = ""
+	EnergyUrl               = ""
+	BName                   = ""
+	IName                   = ""
+	CollectAmong            = 3000.0
+	CollectAmongIndia       = 300.0
+	EnergyAddress           = ""
+	TronPrivateKey          = ""
+	FreezeUnit        int64 = 6206 // 65000 energy
 )

@@ -188,34 +188,60 @@ func getPlatform(c *gin.Context) string {
 	}
 }
 
-func freezeBalance(balance int64) (quickNode.FreezeResponse, error) {
+func freezeBalance(balance int64) (quickNode.Transaction, error) {
 	req := quickNode.FreezeRequest{
 		OwnerAddress:  EnergyAddress,
 		Resource:      "ENERGY",
-		FrozenBalance: balance,
+		FrozenBalance: balance * 1000000,
 		Visible:       true,
 	}
 
 	tx, err := quickNode.CreateFreezeTx(req)
 	if err != nil {
 		log.Println(err)
-	} else {
-		log.Printf("freeze tx: %v", tx)
+		return tx, err
+	}
+	log.Printf("freeze tx: %v", tx)
+	return tx, err
+}
+
+func delegateResource(receiverAddress string) (quickNode.Transaction, error) {
+	req := quickNode.DelegateResourceRequest{
+		OwnerAddress:    EnergyAddress,
+		ReceiverAddress: receiverAddress,
+		Balance:         FreezeUnit * 1000000 * 2,
+		Resource:        "ENERGY",
+		Lock:            false,
+		Visible:         true,
+	}
+
+	tx, err := quickNode.CreateDelegateResourceTx(req)
+	if err != nil {
+		return tx, err
+	}
+	if tx.RawData == nil {
+		err = errors.New("Balance not enough")
+		return tx, err
 	}
 	return tx, err
 }
 
-func broadcastTransaction(tx quickNode.FreezeResponse, sign string) {
-	req := quickNode.BroadcastRequest{
-		TxID:       tx.TxID,
-		RawData:    tx.RawData,
-		RawDataHex: tx.RawDataHex,
-		Signature:  sign,
-		Visible:    true,
+func undelegateResource(receiverAddress string) (quickNode.Transaction, error) {
+	req := quickNode.UndelegateResourceRequest{
+		OwnerAddress:    EnergyAddress,
+		ReceiverAddress: receiverAddress,
+		Balance:         FreezeUnit * 1000000,
+		Resource:        "ENERGY",
+		Visible:         true,
 	}
-	result, err := quickNode.BroadcastTransaction(req)
+
+	tx, err := quickNode.CreateUndelegateResourceTx(req)
 	if err != nil {
-		log.Println(err)
+		return tx, err
 	}
-	log.Printf("broadcast result: %v", result)
+	if tx.RawData == nil {
+		err = errors.New("undelegate RawData is nil")
+		return tx, err
+	}
+	return tx, err
 }

@@ -33,7 +33,8 @@ type FreezeRequest struct {
 	Visible       bool   `json:"visible"`
 }
 
-type FreezeResponse struct {
+type Transaction struct {
+	Visible    bool                   `json:"visible"`
 	TxID       string                 `json:"txid"`
 	RawData    map[string]interface{} `json:"raw_data"`
 	RawDataHex string                 `json:"raw_data_hex"`
@@ -51,4 +52,21 @@ type BroadcastResponse struct {
 	Txid    string `json:"txid"`
 	Code    string `json:"code,omitempty"`
 	Message string `json:"message,omitempty"`
+}
+
+type DelegateResourceRequest struct {
+	OwnerAddress    string `json:"owner_address"`
+	ReceiverAddress string `json:"receiver_address"`
+	Balance         int64  `json:"balance"`
+	Resource        string `json:"resource"`
+	Lock            bool   `json:"lock"`
+	Visible         bool   `json:"visible,omitempty"`
+}
+
+type UndelegateResourceRequest struct {
+	OwnerAddress    string `json:"owner_address"`
+	ReceiverAddress string `json:"receiver_address"`
+	Balance         int64  `json:"balance"`
+	Resource        string `json:"resource"`
+	Visible         bool   `json:"visible,omitempty"`
 }

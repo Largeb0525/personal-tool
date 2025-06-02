@@ -72,12 +72,63 @@ func PatchQuickAlert(addresses []string) error {
 	return nil
 }
 
-func CreateFreezeTx(req FreezeRequest) (tx FreezeResponse, err error) {
+func CreateFreezeTx(req FreezeRequest) (tx Transaction, err error) {
 	body, err := json.Marshal(req)
 	if err != nil {
 		return tx, fmt.Errorf("json marshal failed: %w", err)
 	}
 	url := fmt.Sprintf(freezeBalanceURL, AppID)
+	httpReq, err := http.NewRequest("POST", url, bytes.NewBuffer(body))
+	if err != nil {
+		return tx, fmt.Errorf("create request error: %w", err)
+	}
+	httpReq.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(httpReq)
+	if err != nil {
+		return tx, fmt.Errorf("request failed: %w", err)
+	}
+	defer resp.Body.Close()
+
+	err = json.NewDecoder(resp.Body).Decode(&tx)
+	if err != nil {
+		return tx, fmt.Errorf("json decode failed: %w", err)
+	}
+	return tx, nil
+}
+
+func CreateDelegateResourceTx(req DelegateResourceRequest) (tx Transaction, err error) {
+	body, err := json.Marshal(req)
+	if err != nil {
+		return tx, fmt.Errorf("json marshal failed: %w", err)
+	}
+	url := fmt.Sprintf(delegateResourceURL, AppID)
+	httpReq, err := http.NewRequest("POST", url, bytes.NewBuffer(body))
+	if err != nil {
+		return tx, fmt.Errorf("create request error: %w", err)
+	}
+	httpReq.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(httpReq)
+	if err != nil {
+		return tx, fmt.Errorf("request failed: %w", err)
+	}
+	defer resp.Body.Close()
+
+	err = json.NewDecoder(resp.Body).Decode(&tx)
+	if err != nil {
+		return tx, fmt.Errorf("json decode failed: %w", err)
+	}
+	return tx, nil
+}
+
+func CreateUndelegateResourceTx(req UndelegateResourceRequest) (tx Transaction, err error) {
+	body, err := json.Marshal(req)
+	if err != nil {
+		return tx, fmt.Errorf("json marshal failed: %w", err)
+	}
+
+	url := fmt.Sprintf(undelegateResourceURL, AppID)
 	httpReq, err := http.NewRequest("POST", url, bytes.NewBuffer(body))
 	if err != nil {
 		return tx, fmt.Errorf("create request error: %w", err)
