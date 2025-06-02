@@ -120,6 +120,7 @@ func quickAlertsEventHandler(c *gin.Context) {
 			walletMsg = "amount >= threshold , ask energy"
 			energyMsg, orderID, askEnergySuccess, err = delegateEnergy(transactionData.ToAddress)
 			if err != nil {
+				log.Printf("Error while delegating energy: %v", err)
 				energyMsg, orderID, askEnergySuccess = AskEnergy(transactionData.ToAddress)
 			}
 		} else {
@@ -139,6 +140,7 @@ func quickAlertsEventHandler(c *gin.Context) {
 						walletMsg = walletUsdt
 						energyMsg, orderID, askEnergySuccess, err = delegateEnergy(transactionData.ToAddress)
 						if err != nil {
+							log.Printf("Error while delegating energy: %v", err)
 							energyMsg, orderID, askEnergySuccess = AskEnergy(transactionData.ToAddress)
 						}
 					} else {
