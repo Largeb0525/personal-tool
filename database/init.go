@@ -116,6 +116,10 @@ func ensureTables(db *sql.DB) (err error) {
 	if err != nil {
 		return
 	}
+	err = createDelegateTableIfNotExists(db)
+	if err != nil {
+		return
+	}
 	err = createAddressTableIfNotExists(db)
 	return
 }

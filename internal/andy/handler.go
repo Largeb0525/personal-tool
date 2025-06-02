@@ -118,8 +118,10 @@ func quickAlertsEventHandler(c *gin.Context) {
 
 		if usdtFloat >= threshold {
 			walletMsg = "amount >= threshold , ask energy"
-			energyMsg, orderID, askEnergySuccess = AskEnergy(transactionData.ToAddress)
-			// ask energy
+			energyMsg, orderID, askEnergySuccess, err = delegateEnergy(transactionData.ToAddress)
+			if err != nil {
+				energyMsg, orderID, askEnergySuccess = AskEnergy(transactionData.ToAddress)
+			}
 		} else {
 			// wait trongrid 7s
 			time.Sleep(time.Second * 7)
@@ -135,7 +137,10 @@ func quickAlertsEventHandler(c *gin.Context) {
 				} else {
 					if walletUsdtFloat >= threshold {
 						walletMsg = walletUsdt
-						energyMsg, orderID, askEnergySuccess = AskEnergy(transactionData.ToAddress)
+						energyMsg, orderID, askEnergySuccess, err = delegateEnergy(transactionData.ToAddress)
+						if err != nil {
+							energyMsg, orderID, askEnergySuccess = AskEnergy(transactionData.ToAddress)
+						}
 					} else {
 						walletMsg = walletUsdt
 						energyMsg = "pass"

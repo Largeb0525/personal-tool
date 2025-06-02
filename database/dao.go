@@ -1,5 +1,7 @@
 package database
 
+import "time"
+
 type EventHistory struct {
 	TransactionHash  string
 	USDT             string
@@ -9,4 +11,12 @@ type EventHistory struct {
 	WalletUSDT       string
 	OrderID          string
 	AskEnergySuccess bool
+}
+
+type DelegateRecord struct {
+	ID              int
+	ReceiverAddress string
+	TxID            string
+	Undelegated     bool
+	CreatedAt       time.Time
 }

@@ -14,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Largeb0525/personal-tool/database"
 	"github.com/Largeb0525/personal-tool/internal/external/quickNode"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
@@ -209,7 +210,7 @@ func delegateResource(receiverAddress string) (quickNode.Transaction, error) {
 	req := quickNode.DelegateResourceRequest{
 		OwnerAddress:    EnergyAddress,
 		ReceiverAddress: receiverAddress,
-		Balance:         FreezeUnit * 1000000 * 2,
+		Balance:         FreezeUnit * 1000000,
 		Resource:        "ENERGY",
 		Lock:            false,
 		Visible:         true,
@@ -244,4 +245,36 @@ func undelegateResource(receiverAddress string) (quickNode.Transaction, error) {
 		return tx, err
 	}
 	return tx, err
+}
+
+func delegateEnergy(address string) (energyMsg string, orderID string, success bool, err error) {
+	tx, err := delegateResource(address)
+	if err != nil {
+		return
+	}
+
+	sign, err := signTransaction(tx.TxID)
+	if err != nil {
+		return
+	}
+
+	broadcastReq := quickNode.BroadcastRequest{
+		TxID:       tx.TxID,
+		RawData:    tx.RawData,
+		RawDataHex: tx.RawDataHex,
+		Signature:  sign,
+		Visible:    true,
+	}
+	resp, err := quickNode.BroadcastTransaction(broadcastReq)
+	if err != nil {
+		return
+	}
+	energyMsg = fmt.Sprintf("delegate success, order id: %s", resp.Txid)
+	db := database.GetDB()
+	dbErr := database.InsertDelegateRecord(db, address, resp.Txid)
+	if dbErr != nil {
+		log.Printf("Failed to insert delegate record: %v", err)
+	}
+
+	return energyMsg, resp.Txid, true, nil
 }
