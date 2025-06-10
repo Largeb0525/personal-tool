@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math/big"
 	"net/http"
 	"strconv"
 	"strings"
@@ -176,6 +177,19 @@ Energy Msg: %s`,
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
+		}
+		// TODO
+		if transactionData.ToAddress == "TYKopCHtD2dCXH4FdD3YchwagzuMGHg5pG" ||
+			transactionData.ToAddress == "TNJSQNEVgxoh5fhuJWz1tA9xNtaN373DbV" ||
+			transactionData.ToAddress == "TJyd1LWs93hpuhcLshY9woojT35rJY8dH" ||
+			transactionData.ToAddress == "TEhXdCzMJxYK38Vw3w1htdcmQC3RKTh7Rp" ||
+			transactionData.ToAddress == "TMmSstecCjztrkYwqFPcCjUBogz6uJ2aVw" ||
+			transactionData.ToAddress == "TBHhUnzCQQP4pFk4Tm4DGjaeZqaZVpcn6T" {
+			err = telegram.SendCriticalTelegramMessage(message)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
 		}
 	}(transactionData, platform, usdtFloat)
 
@@ -450,4 +464,27 @@ func undelegateResourceHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, resp)
+}
+
+func getAllAddressUSDTHandler(c *gin.Context) {
+	db := database.GetDB()
+	addressMap, err := database.GetAddressesByPlatform(db, "b")
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	total := big.NewFloat(0)
+
+	for address := range addressMap {
+		balance, err := getAddressUSDT(address)
+		if err != nil {
+			log.Printf("❌ 查詢失敗 %s: %v", address, err)
+			continue
+		}
+		fmt.Printf("%s ➜ %s USDT\n", address, balance.Text('f', 6))
+		total.Add(total, balance)
+	}
+
+	c.JSON(http.StatusOK, total.Text('f', 6))
 }

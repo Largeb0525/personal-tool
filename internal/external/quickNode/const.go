@@ -6,6 +6,7 @@ const (
 	delegateResourceURL   = "https://methodical-smart-yard.tron-mainnet.quiknode.pro/%s/wallet/delegateresource"
 	undelegateResourceURL = "https://methodical-smart-yard.tron-mainnet.quiknode.pro/%s/wallet/undelegateresource"
 	broadcastURL          = "https://methodical-smart-yard.tron-mainnet.quiknode.pro/%s/wallet/broadcasttransaction"
+	smartContractURL      = "https://methodical-smart-yard.tron-mainnet.quiknode.pro/%s/wallet/triggerconstantcontract"
 )
 
 var (

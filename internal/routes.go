@@ -14,7 +14,7 @@ import (
 func InitRouter() *gin.Engine {
 	r := gin.Default()
 	fillParameters()
-	go andy.ScheduleDailyReport()
+	andy.StartCronJobs()
 
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{

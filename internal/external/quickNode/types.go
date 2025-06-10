@@ -70,3 +70,18 @@ type UndelegateResourceRequest struct {
 	Resource        string `json:"resource"`
 	Visible         bool   `json:"visible,omitempty"`
 }
+
+type TriggerSmartContractRequest struct {
+	OwnerAddress     string `json:"owner_address"`     // 查詢者地址（Base58）
+	ContractAddress  string `json:"contract_address"`  // TRC20 合約地址（如 USDT）
+	FunctionSelector string `json:"function_selector"` // e.g. "balanceOf(address)"
+	Parameter        string `json:"parameter"`         // ABI 編碼參數（64 hex 字元）
+	Visible          bool   `json:"visible,omitempty"` // Base58 格式時設為 true
+}
+
+type TriggerSmartContractResponse struct {
+	ConstantResult []string `json:"constant_result"` // 呼叫 view 方法的 return 值（hex 字串）
+	Result         struct {
+		Result bool `json:"result"`
+	} `json:"result"`
+}

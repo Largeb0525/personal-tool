@@ -16,5 +16,6 @@ func AndyRouter(r *gin.Engine) {
 		routerGroup.POST("/freezeTRX", freezeTRXHandler)
 		routerGroup.POST("/delegate/resource", delegateResourceHandler)
 		routerGroup.POST("/undelegate/resource", undelegateResourceHandler)
+		routerGroup.GET("/all-usdt", getAllAddressUSDTHandler)
 	}
 }

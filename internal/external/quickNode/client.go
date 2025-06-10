@@ -127,7 +127,6 @@ func CreateUndelegateResourceTx(req UndelegateResourceRequest) (tx Transaction, 
 	if err != nil {
 		return tx, fmt.Errorf("json marshal failed: %w", err)
 	}
-
 	url := fmt.Sprintf(undelegateResourceURL, AppID)
 	httpReq, err := http.NewRequest("POST", url, bytes.NewBuffer(body))
 	if err != nil {
@@ -149,7 +148,10 @@ func CreateUndelegateResourceTx(req UndelegateResourceRequest) (tx Transaction, 
 }
 
 func BroadcastTransaction(req BroadcastRequest) (result BroadcastResponse, err error) {
-	body, _ := json.Marshal(req)
+	body, err := json.Marshal(req)
+	if err != nil {
+		return result, fmt.Errorf("json marshal failed: %w", err)
+	}
 	url := fmt.Sprintf(broadcastURL, AppID)
 	httpReq, err := http.NewRequest("POST", url, bytes.NewBuffer(body))
 	if err != nil {
@@ -168,4 +170,29 @@ func BroadcastTransaction(req BroadcastRequest) (result BroadcastResponse, err e
 		return result, err
 	}
 	return result, nil
+}
+
+func CallTriggerSmartContract(req TriggerSmartContractRequest) (respData TriggerSmartContractResponse, err error) {
+	body, err := json.Marshal(req)
+	if err != nil {
+		return respData, fmt.Errorf("json marshal failed: %w", err)
+	}
+	url := fmt.Sprintf(smartContractURL, AppID)
+	httpReq, err := http.NewRequest("POST", url, bytes.NewBuffer(body))
+	if err != nil {
+		return respData, fmt.Errorf("create request error: %w", err)
+	}
+	httpReq.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(httpReq)
+	if err != nil {
+		return respData, fmt.Errorf("request failed: %w", err)
+	}
+	defer resp.Body.Close()
+
+	err = json.NewDecoder(resp.Body).Decode(&respData)
+	if err != nil {
+		return respData, fmt.Errorf("json decode failed: %w", err)
+	}
+	return respData, nil
 }

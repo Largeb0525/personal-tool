@@ -55,3 +55,47 @@ func GetUndelegatedBefore(db *sql.DB, before time.Time) ([]DelegateRecord, error
 	}
 	return records, nil
 }
+
+func GetTodayDelegatedCount(db *sql.DB) (int, error) {
+	loc, _ := time.LoadLocation("Asia/Taipei")
+	localNow := time.Now().In(loc)
+	localStart := time.Date(localNow.Year(), localNow.Month(), localNow.Day(), 0, 0, 0, 0, loc)
+	localEnd := localStart.Add(24 * time.Hour)
+
+	query := `
+	SELECT COUNT(*)
+	FROM delegate
+	WHERE createTime >= ? AND createTime < ?;
+	`
+
+	var count int
+	err := db.QueryRow(query, localStart, localEnd).Scan(&count)
+	if err != nil {
+		return 0, fmt.Errorf("count query failed: %w", err)
+	}
+	return count, nil
+}
+
+func UpdateUndelegatedByTxid(db *sql.DB, txid string) error {
+	query := `
+	UPDATE delegate
+	SET undelegated = TRUE
+	WHERE txid = ?;
+	`
+
+	result, err := db.Exec(query, txid)
+	if err != nil {
+		return fmt.Errorf("update undelegated failed: %w", err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("fetch rows affected failed: %w", err)
+	}
+	if rowsAffected == 0 {
+		return fmt.Errorf("no record found with txid: %s", txid)
+	}
+
+	log.Printf("✅ txid %s updated as undelegated.", txid)
+	return nil
+}

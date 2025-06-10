@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"math"
 	"math/big"
 	"strings"
 
@@ -129,4 +130,15 @@ func signTransaction(txIDHex string) (string, error) {
 	}
 
 	return hex.EncodeToString(sig), nil
+}
+
+func parseTrc20AmountToFloat(hexStr string, decimals int) (*big.Float, error) {
+	rawInt := new(big.Int)
+	_, ok := rawInt.SetString(hexStr, 16)
+	if !ok {
+		return nil, errors.New("invalid hex string")
+	}
+	rawFloat := new(big.Float).SetInt(rawInt)
+	divisor := new(big.Float).SetFloat64(math.Pow10(decimals))
+	return new(big.Float).Quo(rawFloat, divisor), nil
 }

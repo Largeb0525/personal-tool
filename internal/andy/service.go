@@ -278,3 +278,61 @@ func delegateEnergy(address string) (energyMsg string, orderID string, success b
 
 	return energyMsg, resp.Txid, true, nil
 }
+
+func undelegateEnergy(address string, txID string) (err error) {
+	tx, err := undelegateResource(address)
+	if err != nil {
+		return
+	}
+
+	sign, err := signTransaction(tx.TxID)
+	if err != nil {
+		return
+	}
+
+	broadcastReq := quickNode.BroadcastRequest{
+		TxID:       tx.TxID,
+		RawData:    tx.RawData,
+		RawDataHex: tx.RawDataHex,
+		Signature:  sign,
+		Visible:    true,
+	}
+	_, err = quickNode.BroadcastTransaction(broadcastReq)
+	if err != nil {
+		return
+	}
+	db := database.GetDB()
+	dbErr := database.UpdateUndelegatedByTxid(db, txID)
+	if dbErr != nil {
+		log.Printf("Failed to update undelegated: %v", err)
+	}
+
+	return
+}
+
+func getAddressUSDT(addr string) (*big.Float, error) {
+	hexAddr, err := TronToHexPadded32(addr)
+	if err != nil {
+		return nil, err
+	}
+	param := fmt.Sprintf("%064s", hexAddr[2:]) // 去掉 0x 開頭
+
+	req := quickNode.TriggerSmartContractRequest{
+		OwnerAddress:     addr,
+		ContractAddress:  "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+		FunctionSelector: "balanceOf(address)",
+		Parameter:        param,
+		Visible:          true,
+	}
+
+	resp, err := quickNode.CallTriggerSmartContract(req)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(resp.ConstantResult) == 0 {
+		return big.NewFloat(0), nil
+	}
+
+	return parseTrc20AmountToFloat(resp.ConstantResult[0], 6) // USDT 小數 6 位
+}

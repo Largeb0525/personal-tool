@@ -7,42 +7,70 @@ import (
 
 	"github.com/Largeb0525/personal-tool/database"
 	"github.com/Largeb0525/personal-tool/internal/external/telegram"
+
+	"github.com/robfig/cron/v3"
 )
 
-func ScheduleDailyReport() {
-	location, err := time.LoadLocation("Asia/Taipei")
+var c *cron.Cron
+
+func StartCronJobs() {
+	c = cron.New()
+
+	// per day
+	_, err := c.AddFunc("59 23 * * *", scheduleDailyReport)
 	if err != nil {
 		panic(err)
 	}
 
-	for {
-		now := time.Now().In(location)
-		// 計算下一次 UTC+8 的 23:59
-		next := time.Date(now.Year(), now.Month(), now.Day(), 23, 59, 0, 0, location)
-		if now.After(next) {
-			// 若已過今日 23:59，則設為明日
-			next = next.Add(24 * time.Hour)
-		}
-		duration := next.Sub(now)
-		fmt.Printf("🕒 等待 %s 執行...\n", duration)
-		time.Sleep(duration)
+	// per hour
+	_, err = c.AddFunc("0 * * * *", undelegateEnergyJob)
+	if err != nil {
+		panic(err)
+	}
 
-		db := database.GetDB()
-		countMap, err := database.GetTodayEventCountGroupByPlatform(db)
-		if err != nil {
-			log.Printf("Failed to get today event count: %v", err)
-			continue
-		}
+	c.Start()
+}
 
-		message := fmt.Sprintf(
-			`Daily Report
+func scheduleDailyReport() {
+	db := database.GetDB()
+	countMap, err := database.GetTodayEventCountGroupByPlatform(db)
+	if err != nil {
+		log.Printf("Failed to get today event count: %v", err)
+		return
+	}
+
+	delegatedCount, err := database.GetTodayDelegatedCount(db)
+	if err != nil {
+		log.Printf("Failed to get today delegated count: %v", err)
+		return
+	}
+
+	message := fmt.Sprintf(
+		`Daily Report
 	%s: %d
-	%s: %d`,
-			BName, countMap["b"], IName, countMap["i"])
+	%s: %d
+	Delegated: %d`,
+		BName, countMap["b"], IName, countMap["i"], delegatedCount)
 
-		err = telegram.SendTelegramMessage(message)
+	err = telegram.SendTelegramMessage(message)
+	if err != nil {
+		log.Printf("Failed to send Telegram message: %v", err)
+	}
+}
+
+func undelegateEnergyJob() {
+	db := database.GetDB()
+	checkTime := time.Now().Add(-1 * time.Hour)
+	delegateRecords, err := database.GetUndelegatedBefore(db, checkTime)
+	if err != nil {
+		log.Printf("Failed to get undelegated before: %v", err)
+		return
+	}
+
+	for _, record := range delegateRecords {
+		err := undelegateEnergy(record.ReceiverAddress, record.TxID)
 		if err != nil {
-			log.Printf("Failed to send Telegram message: %v", err)
+			log.Printf("Failed to undelegate energy ,address: %s, txid: %s, err: %v", record.ReceiverAddress, record.TxID, err)
 		}
 	}
 }
