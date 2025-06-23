@@ -175,7 +175,7 @@ Energy Msg: %s`,
 
 		err = telegram.SendTelegramMessage(message)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			log.Printf("Failed to send Telegram message: %v", err)
 			return
 		}
 		// TODO
@@ -187,7 +187,7 @@ Energy Msg: %s`,
 			transactionData.ToAddress == "TBHhUnzCQQP4pFk4Tm4DGjaeZqaZVpcn6T" {
 			err = telegram.SendCriticalTelegramMessage(message)
 			if err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				log.Printf("Failed to send Critical Telegram message: %v", err)
 				return
 			}
 		}

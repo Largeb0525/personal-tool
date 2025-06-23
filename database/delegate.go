@@ -65,7 +65,7 @@ func GetTodayDelegatedCount(db *sql.DB) (int, error) {
 	query := `
 	SELECT COUNT(*)
 	FROM delegate
-	WHERE createTime >= ? AND createTime < ?;
+	WHERE created_at >= ? AND created_at < ?;
 	`
 
 	var count int
