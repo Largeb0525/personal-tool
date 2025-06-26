@@ -70,37 +70,35 @@ func handleOrderRequestHandler(c *gin.Context) {
 }
 
 func quickAlertsEventHandler(c *gin.Context) {
+	var payloads []TransactionReceipt
+	if err := c.ShouldBindJSON(&payloads); err != nil || len(payloads) == 0 {
+		log.Printf("Invalid payload: %v", err)
+		c.JSON(http.StatusOK, gin.H{"message": "received"})
+		return
+	}
+
 	platform := getPlatform(c)
 	if platform == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Platform not supported"})
-		return
-	}
-	var payloads []TransactionReceipt
-
-	err := c.ShouldBindJSON(&payloads)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		log.Printf("Platform not supported")
+		c.JSON(http.StatusOK, gin.H{"message": "received"})
 		return
 	}
 
-	if len(payloads) == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "No payloads provided"})
-		return
-	}
+	c.JSON(http.StatusOK, gin.H{"message": "received"})
 
-	transactionData, err := parseTransactionData(payloads[0])
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
+	go func(payload TransactionReceipt, platform string) {
+		transactionData, err := parseTransactionData(payload)
+		if err != nil {
+			log.Printf("Failed to parse transaction data: %v", err)
+			return
+		}
 
-	usdtFloat, err := strconv.ParseFloat(transactionData.USDT, 64)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
+		usdtFloat, err := strconv.ParseFloat(transactionData.USDT, 64)
+		if err != nil {
+			log.Printf("Failed to parse USDT: %v", err)
+			return
+		}
 
-	go func(transactionData ParsedTransaction, platform string, usdtFloat float64) {
 		walletMsg := ""
 		energyMsg := ""
 		threshold := 3000.0
@@ -125,29 +123,23 @@ func quickAlertsEventHandler(c *gin.Context) {
 				energyMsg, orderID, askEnergySuccess = AskEnergy(transactionData.ToAddress)
 			}
 		} else {
-			// wait trongrid 7s
-			time.Sleep(time.Second * 7)
-			walletUsdt, err := CheckTronAddressUSDT(transactionData.ToAddress)
+			walletUsdt, err := getAddressUSDT(transactionData.ToAddress)
 			if err != nil {
 				walletMsg = "[error] " + err.Error()
-			} else if walletUsdt == "" {
+			} else if walletUsdt == big.NewFloat(0) {
 				walletMsg = "wallet has no USDT"
 			} else {
-				walletUsdtFloat, err := strconv.ParseFloat(walletUsdt, 64)
-				if err != nil {
-					walletMsg = "[error] " + err.Error()
-				} else {
-					if walletUsdtFloat >= threshold {
-						walletMsg = walletUsdt
-						energyMsg, orderID, askEnergySuccess, err = delegateEnergy(transactionData.ToAddress)
-						if err != nil {
-							log.Printf("Error while delegating energy: %v", err)
-							energyMsg, orderID, askEnergySuccess = AskEnergy(transactionData.ToAddress)
-						}
-					} else {
-						walletMsg = walletUsdt
-						energyMsg = "pass"
+				walletUsdtFloat, _ := walletUsdt.Float64()
+				if walletUsdtFloat >= threshold {
+					walletMsg = walletUsdt.String()
+					energyMsg, orderID, askEnergySuccess, err = delegateEnergy(transactionData.ToAddress)
+					if err != nil {
+						log.Printf("Error while delegating energy: %v", err)
+						energyMsg, orderID, askEnergySuccess = AskEnergy(transactionData.ToAddress)
 					}
+				} else {
+					walletMsg = walletUsdt.String()
+					energyMsg = "pass"
 				}
 			}
 		}
@@ -191,9 +183,7 @@ Energy Msg: %s`,
 				return
 			}
 		}
-	}(transactionData, platform, usdtFloat)
-
-	c.JSON(http.StatusOK, gin.H{"message": "success"})
+	}(payloads[0], platform)
 }
 
 func thresholdHandler(c *gin.Context) {
@@ -327,26 +317,26 @@ func uploadAddressCsvFileHandler(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"message": "success", "newAddress": newAddresses, "insertFailedAddresses": insertFailedAddresses})
 		return
 	}
+	c.JSON(http.StatusOK, gin.H{"message": "success", "newAddress": newAddresses, "insertFailedAddresses": insertFailedAddresses})
 
 	if updateAlert == "true" {
-		go func() {
+		patchAddrs := append([]string(nil), newHexAddresses...)
+		go func(addrs []string) {
 			quickAlert, err := quickNode.GetQuickAlertInfo()
 			if err != nil {
 				log.Println(err)
 				return
 			}
 			addresses := quickNode.ParseExpressionToAddresses(quickAlert.Expression)
-			addresses = append(addresses, newHexAddresses...)
+			addresses = append(addresses, addrs...)
 			err = quickNode.PatchQuickAlert(addresses)
 			if err != nil {
 				log.Println(err)
 				return
 			}
 			log.Println("PatchQuickAlert success")
-		}()
+		}(patchAddrs)
 	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "success", "newAddress": newAddresses, "insertFailedAddresses": insertFailedAddresses})
 }
 
 func freezeTRXHandler(c *gin.Context) {

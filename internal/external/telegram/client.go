@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 )
 
 func SendTelegramMessage(message string) error {
@@ -22,7 +23,10 @@ func SendTelegramMessage(message string) error {
 	}
 
 	url := fmt.Sprintf(BotReqURL, TelegramBotToken)
-	resp, err := http.Post(url, "application/json", bytes.NewBuffer(bodyBytes))
+	client := &http.Client{
+		Timeout: 10 * time.Second,
+	}
+	resp, err := client.Post(url, "application/json", bytes.NewBuffer(bodyBytes))
 	if err != nil {
 		return fmt.Errorf("failed to send request: %w", err)
 	}
@@ -56,7 +60,10 @@ func SendCriticalTelegramMessage(message string) error {
 	}
 
 	url := fmt.Sprintf(BotReqURL, TelegramBotToken)
-	resp, err := http.Post(url, "application/json", bytes.NewBuffer(bodyBytes))
+	client := &http.Client{
+		Timeout: 10 * time.Second,
+	}
+	resp, err := client.Post(url, "application/json", bytes.NewBuffer(bodyBytes))
 	if err != nil {
 		return fmt.Errorf("failed to send request: %w", err)
 	}

@@ -57,10 +57,8 @@ func GetUndelegatedBefore(db *sql.DB, before time.Time) ([]DelegateRecord, error
 }
 
 func GetTodayDelegatedCount(db *sql.DB) (int, error) {
-	loc, _ := time.LoadLocation("Asia/Taipei")
-	localNow := time.Now().In(loc)
-	localStart := time.Date(localNow.Year(), localNow.Month(), localNow.Day(), 0, 0, 0, 0, loc)
-	localEnd := localStart.Add(24 * time.Hour)
+	localNow := time.Now()
+	localStart := localNow.Add(-24 * time.Hour)
 
 	query := `
 	SELECT COUNT(*)
@@ -69,7 +67,7 @@ func GetTodayDelegatedCount(db *sql.DB) (int, error) {
 	`
 
 	var count int
-	err := db.QueryRow(query, localStart, localEnd).Scan(&count)
+	err := db.QueryRow(query, localStart, localNow).Scan(&count)
 	if err != nil {
 		return 0, fmt.Errorf("count query failed: %w", err)
 	}

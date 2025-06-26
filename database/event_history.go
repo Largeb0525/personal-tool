@@ -41,10 +41,8 @@ func InsertEventHistory(db *sql.DB, ev EventHistory) error {
 }
 
 func GetTodayEventCountGroupByPlatform(db *sql.DB) (map[string]int, error) {
-	loc, _ := time.LoadLocation("Asia/Taipei")
-	localNow := time.Now().In(loc)
-	localStart := time.Date(localNow.Year(), localNow.Month(), localNow.Day(), 0, 0, 0, 0, loc)
-	localEnd := localStart.Add(24 * time.Hour)
+	localEnd := time.Now()
+	localStart := localEnd.Add(-24 * time.Hour)
 
 	query := `
 	SELECT platform, COUNT(*)

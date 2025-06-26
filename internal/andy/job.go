@@ -1,6 +1,7 @@
 package andy
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -11,13 +12,11 @@ import (
 	"github.com/robfig/cron/v3"
 )
 
-var c *cron.Cron
-
-func StartCronJobs() {
-	c = cron.New()
+func StartCronJobs(ctx context.Context) *cron.Cron {
+	c := cron.New()
 
 	// per day
-	_, err := c.AddFunc("59 23 * * *", scheduleDailyReport)
+	_, err := c.AddFunc("58 15 * * *", scheduleDailyReport)
 	if err != nil {
 		panic(err)
 	}
@@ -29,6 +28,12 @@ func StartCronJobs() {
 	}
 
 	c.Start()
+
+	go func() {
+		<-ctx.Done()
+		c.Stop()
+	}()
+	return c
 }
 
 func scheduleDailyReport() {
@@ -59,6 +64,7 @@ func scheduleDailyReport() {
 }
 
 func undelegateEnergyJob() {
+	log.Printf("Undelegating energy...")
 	db := database.GetDB()
 	checkTime := time.Now().Add(-1 * time.Hour)
 	delegateRecords, err := database.GetUndelegatedBefore(db, checkTime)

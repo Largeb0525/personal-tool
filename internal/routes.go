@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"context"
 	"net/http"
 	"strings"
 
@@ -8,13 +9,14 @@ import (
 	"github.com/Largeb0525/personal-tool/internal/external/quickNode"
 	"github.com/Largeb0525/personal-tool/internal/external/telegram"
 	"github.com/gin-gonic/gin"
+	"github.com/robfig/cron/v3"
 	"github.com/spf13/viper"
 )
 
-func InitRouter() *gin.Engine {
+func InitRouter(ctx context.Context) (*gin.Engine, *cron.Cron) {
 	r := gin.Default()
 	fillParameters()
-	andy.StartCronJobs()
+	c := andy.StartCronJobs(ctx)
 
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
@@ -41,7 +43,7 @@ func InitRouter() *gin.Engine {
 
 	andy.AndyRouter(r)
 
-	return r
+	return r, c
 }
 
 func fillParameters() {

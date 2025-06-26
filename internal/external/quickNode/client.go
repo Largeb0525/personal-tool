@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 )
 
 func GetQuickAlertInfo() (QuickAlert, error) {
@@ -20,7 +21,10 @@ func GetQuickAlertInfo() (QuickAlert, error) {
 	req.Header.Set("accept", "application/json")
 	req.Header.Set("x-api-key", ApiKey)
 
-	resp, err := http.DefaultClient.Do(req)
+	client := &http.Client{
+		Timeout: 10 * time.Second,
+	}
+	resp, err := client.Do(req)
 	if err != nil {
 		return result, err
 	}
@@ -59,7 +63,10 @@ func PatchQuickAlert(addresses []string) error {
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("x-api-key", ApiKey)
 
-	resp, err := http.DefaultClient.Do(req)
+	client := &http.Client{
+		Timeout: 10 * time.Second,
+	}
+	resp, err := client.Do(req)
 	if err != nil {
 		return fmt.Errorf("request failed: %w", err)
 	}
@@ -84,7 +91,10 @@ func CreateFreezeTx(req FreezeRequest) (tx Transaction, err error) {
 	}
 	httpReq.Header.Set("Content-Type", "application/json")
 
-	resp, err := http.DefaultClient.Do(httpReq)
+	client := &http.Client{
+		Timeout: 10 * time.Second,
+	}
+	resp, err := client.Do(httpReq)
 	if err != nil {
 		return tx, fmt.Errorf("request failed: %w", err)
 	}
@@ -109,7 +119,10 @@ func CreateDelegateResourceTx(req DelegateResourceRequest) (tx Transaction, err 
 	}
 	httpReq.Header.Set("Content-Type", "application/json")
 
-	resp, err := http.DefaultClient.Do(httpReq)
+	client := &http.Client{
+		Timeout: 10 * time.Second,
+	}
+	resp, err := client.Do(httpReq)
 	if err != nil {
 		return tx, fmt.Errorf("request failed: %w", err)
 	}
@@ -134,7 +147,10 @@ func CreateUndelegateResourceTx(req UndelegateResourceRequest) (tx Transaction, 
 	}
 	httpReq.Header.Set("Content-Type", "application/json")
 
-	resp, err := http.DefaultClient.Do(httpReq)
+	client := &http.Client{
+		Timeout: 10 * time.Second,
+	}
+	resp, err := client.Do(httpReq)
 	if err != nil {
 		return tx, fmt.Errorf("request failed: %w", err)
 	}
@@ -159,7 +175,10 @@ func BroadcastTransaction(req BroadcastRequest) (result BroadcastResponse, err e
 	}
 	httpReq.Header.Set("Content-Type", "application/json")
 
-	resp, err := http.DefaultClient.Do(httpReq)
+	client := &http.Client{
+		Timeout: 10 * time.Second,
+	}
+	resp, err := client.Do(httpReq)
 	if err != nil {
 		return result, fmt.Errorf("request failed: %w", err)
 	}
@@ -184,7 +203,10 @@ func CallTriggerSmartContract(req TriggerSmartContractRequest) (respData Trigger
 	}
 	httpReq.Header.Set("Content-Type", "application/json")
 
-	resp, err := http.DefaultClient.Do(httpReq)
+	client := &http.Client{
+		Timeout: 10 * time.Second,
+	}
+	resp, err := client.Do(httpReq)
 	if err != nil {
 		return respData, fmt.Errorf("request failed: %w", err)
 	}
