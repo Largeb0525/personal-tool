@@ -12,7 +12,6 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/Largeb0525/personal-tool/database"
 	"github.com/Largeb0525/personal-tool/internal/external/quickNode"
@@ -226,25 +225,23 @@ func refreshHandler(c *gin.Context) {
 	}
 
 	for addr := range addresses {
-		walletUsdt, err := CheckTronAddressUSDT(addr)
+		walletUsdt, err := getAddressUSDT(addr)
 		if err != nil {
 			if err.Error() != "wallet has no USDT" {
 				fmt.Printf("Error checking address:%s ,err:%v\n", addr, err)
 			}
 			continue
 		}
-		walletUsdtFloat, err := strconv.ParseFloat(walletUsdt, 64)
-		if err != nil {
-			fmt.Printf("Error parsing address:%s ,err:%v\n", addr, err)
-			time.Sleep(time.Second * 1)
+		log.Printf("Address: %s, USDT: %s\n", addr, walletUsdt.Text('f', 6))
+		if walletUsdt == big.NewFloat(0) {
 			continue
 		}
-		if walletUsdtFloat >= 10 {
+
+		walletUsdtFloat, _ := walletUsdt.Float64()
+		if walletUsdtFloat >= 1500 {
 			AskEnergy(addr)
-			time.Sleep(time.Second * 1)
 		}
 	}
-	time.Sleep(time.Second * 1)
 	c.JSON(http.StatusOK, gin.H{"message": "success"})
 }
 
