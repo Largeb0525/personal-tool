@@ -27,6 +27,12 @@ func StartCronJobs(ctx context.Context) *cron.Cron {
 		panic(err)
 	}
 
+	// every hour at minute 55
+	_, err = c.AddFunc("55 * * * *", vault2BotJob)
+	if err != nil {
+		panic(err)
+	}
+
 	c.Start()
 
 	go func() {
@@ -78,5 +84,23 @@ func undelegateEnergyJob() {
 		if err != nil {
 			log.Printf("Failed to undelegate energy ,address: %s, txid: %s, err: %v", record.ReceiverAddress, record.TxID, err)
 		}
+	}
+}
+
+func vault2BotJob() {
+	walletUsdt, err := getAddressUSDT("TJmdUZTdHNXdzY11RMV39wcdrJFnpki9Uk")
+	if err != nil {
+		log.Printf("Failed to get address USDT: %v", err)
+		return
+	}
+	walletUsdtFloat, _ := walletUsdt.Float64()
+	message := fmt.Sprintf(
+		`金庫2餘額：
+	%f USDT`,
+		walletUsdtFloat)
+
+	err = telegram.SendVault2Message(message)
+	if err != nil {
+		log.Printf("Failed to send Telegram message: %v", err)
 	}
 }
