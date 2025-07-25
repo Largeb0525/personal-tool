@@ -6,7 +6,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"time"
+
+	"github.com/Largeb0525/personal-tool/internal/httpclient"
 )
 
 func SendTelegramMessage(message string) error {
@@ -23,10 +24,7 @@ func SendTelegramMessage(message string) error {
 	}
 
 	url := fmt.Sprintf(BotReqURL, TelegramBotToken)
-	client := &http.Client{
-		Timeout: 10 * time.Second,
-	}
-	resp, err := client.Post(url, "application/json", bytes.NewBuffer(bodyBytes))
+	resp, err := httpclient.DefaultClient.Post(url, "application/json", bytes.NewBuffer(bodyBytes))
 	if err != nil {
 		return fmt.Errorf("failed to send request: %w", err)
 	}
@@ -60,10 +58,7 @@ func SendCriticalTelegramMessage(message string) error {
 	}
 
 	url := fmt.Sprintf(BotReqURL, TelegramBotToken)
-	client := &http.Client{
-		Timeout: 10 * time.Second,
-	}
-	resp, err := client.Post(url, "application/json", bytes.NewBuffer(bodyBytes))
+	resp, err := httpclient.DefaultClient.Post(url, "application/json", bytes.NewBuffer(bodyBytes))
 	if err != nil {
 		return fmt.Errorf("failed to send request: %w", err)
 	}
@@ -97,10 +92,7 @@ func SendVault2Message(message string) error {
 	}
 
 	url := fmt.Sprintf(BotReqURL, "7734602965:AAERANyQgqr4Lae5u4BFBzdlTDGMc8s9F2s")
-	client := &http.Client{
-		Timeout: 10 * time.Second,
-	}
-	resp, err := client.Post(url, "application/json", bytes.NewBuffer(bodyBytes))
+	resp, err := httpclient.DefaultClient.Post(url, "application/json", bytes.NewBuffer(bodyBytes))
 	if err != nil {
 		return fmt.Errorf("failed to send request: %w", err)
 	}
