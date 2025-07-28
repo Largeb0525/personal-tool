@@ -100,7 +100,7 @@ func quickAlertsEventHandler(c *gin.Context) {
 
 		walletMsg := ""
 		energyMsg := ""
-		threshold := 3000.0
+		threshold := 3500.0
 		name := ""
 		orderID := ""
 		askEnergySuccess := false

@@ -11,7 +11,7 @@ var (
 	EnergyUrl               = ""
 	BName                   = ""
 	IName                   = ""
-	CollectAmong            = 3000.0
+	CollectAmong            = 3500.0
 	CollectAmongIndia       = 300.0
 	EnergyAddress           = ""
 	TronPrivateKey          = ""
