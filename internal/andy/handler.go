@@ -164,7 +164,7 @@ Wallet Msg: %s
 Energy Msg: %s`,
 			name, transactionData.URL, transactionData.USDT, transactionData.FromAddress, transactionData.ToAddress, walletMsg, energyMsg)
 
-		err = telegram.SendTelegramMessage(message)
+		err = telegram.SendTelegramMessage(message, telegram.TelegramChatId, telegram.TelegramBotToken)
 		if err != nil {
 			log.Printf("Failed to send Telegram message: %v", err)
 			return
@@ -176,7 +176,7 @@ Energy Msg: %s`,
 			transactionData.ToAddress == "TEhXdCzMJxYK38Vw3w1htdcmQC3RKTh7Rp" ||
 			transactionData.ToAddress == "TMmSstecCjztrkYwqFPcCjUBogz6uJ2aVw" ||
 			transactionData.ToAddress == "TBHhUnzCQQP4pFk4Tm4DGjaeZqaZVpcn6T" {
-			err = telegram.SendCriticalTelegramMessage(message)
+			err = telegram.SendTelegramMessage(message, telegram.CriticalTelegramChatId, telegram.TelegramBotToken)
 			if err != nil {
 				log.Printf("Failed to send Critical Telegram message: %v", err)
 				return

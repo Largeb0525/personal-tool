@@ -5,8 +5,9 @@ const (
 )
 
 var (
-	TelegramChatId   = ""
-	TelegramBotToken = ""
-	// TODO
-	CriticalTelegramChatId = "-4971149283"
+	TelegramChatId         = ""
+	CriticalTelegramChatId = ""
+
+	TelegramBotToken       = ""
+	TelegramVault2BotToken = ""
 )

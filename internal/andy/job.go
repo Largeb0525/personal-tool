@@ -10,25 +10,32 @@ import (
 	"github.com/Largeb0525/personal-tool/internal/external/telegram"
 
 	"github.com/robfig/cron/v3"
+	"github.com/spf13/viper"
+)
+
+const (
+	// DailyReportSchedule runs every day at 15:58
+	DailyReportSchedule = "58 15 * * *"
+	// UndelegateEnergySchedule runs every hour at the beginning of the hour
+	UndelegateEnergySchedule = "0 * * * *"
+	// Vault2BotSchedule runs every hour at minute 55
+	Vault2BotSchedule = "55 * * * *"
 )
 
 func StartCronJobs(ctx context.Context) *cron.Cron {
 	c := cron.New()
 
-	// per day
-	_, err := c.AddFunc("58 15 * * *", scheduleDailyReport)
+	_, err := c.AddFunc(DailyReportSchedule, scheduleDailyReport)
 	if err != nil {
 		panic(err)
 	}
 
-	// per hour
-	_, err = c.AddFunc("0 * * * *", undelegateEnergyJob)
+	_, err = c.AddFunc(UndelegateEnergySchedule, undelegateEnergyJob)
 	if err != nil {
 		panic(err)
 	}
 
-	// every hour at minute 55
-	_, err = c.AddFunc("55 * * * *", vault2BotJob)
+	_, err = c.AddFunc(Vault2BotSchedule, vault2BotJob)
 	if err != nil {
 		panic(err)
 	}
@@ -63,7 +70,7 @@ func scheduleDailyReport() {
 	Delegated: %d`,
 		BName, countMap["b"], IName, countMap["i"], delegatedCount)
 
-	err = telegram.SendTelegramMessage(message)
+	err = telegram.SendTelegramMessage(message, telegram.TelegramChatId, telegram.TelegramBotToken)
 	if err != nil {
 		log.Printf("Failed to send Telegram message: %v", err)
 	}
@@ -88,7 +95,8 @@ func undelegateEnergyJob() {
 }
 
 func vault2BotJob() {
-	walletUsdt, err := getAddressUSDT("TJmdUZTdHNXdzY11RMV39wcdrJFnpki9Uk")
+	vault2Address := viper.GetString("andy.wallet.vault2_address")
+	walletUsdt, err := getAddressUSDT(vault2Address)
 	if err != nil {
 		log.Printf("Failed to get address USDT: %v", err)
 		return
@@ -99,7 +107,7 @@ func vault2BotJob() {
 	%f USDT`,
 		walletUsdtFloat)
 
-	err = telegram.SendVault2Message(message)
+	err = telegram.SendTelegramMessage(message, telegram.TelegramChatId, telegram.TelegramVault2BotToken)
 	if err != nil {
 		log.Printf("Failed to send Telegram message: %v", err)
 	}
