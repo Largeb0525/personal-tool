@@ -17,7 +17,8 @@ services:
         condition: service_healthy 
     volumes:
       - ./config:/app/config
-
+    command: >
+      bash -c "cp /app/config/local.toml /app/config/config.toml && ./personal-tool"
   db:
     image: mysql:8.0
     environment:

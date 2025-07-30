@@ -107,7 +107,7 @@ func vault2BotJob() {
 	%f USDT`,
 		walletUsdtFloat)
 
-	err = telegram.SendTelegramMessage(message, telegram.TelegramChatId, telegram.TelegramVault2BotToken)
+	err = telegram.SendTelegramMessage(message, "-829676684", telegram.TelegramVault2BotToken)
 	if err != nil {
 		log.Printf("Failed to send Telegram message: %v", err)
 	}
