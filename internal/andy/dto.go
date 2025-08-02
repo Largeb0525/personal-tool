@@ -47,6 +47,10 @@ type TransactionReceipt struct {
 	Type              string `json:"type"`
 }
 
+type MatchingReceipts struct {
+	MatchingReceipts []TransactionReceipt `json:"matchingReceipts"`
+}
+
 type ParsedTransaction struct {
 	TransactionHash string `json:"transaction_hash"`
 	URL             string `json:"url"`

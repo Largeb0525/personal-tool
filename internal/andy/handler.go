@@ -69,8 +69,8 @@ func handleOrderRequestHandler(c *gin.Context) {
 }
 
 func quickAlertsEventHandler(c *gin.Context) {
-	var payloads []TransactionReceipt
-	if err := c.ShouldBindJSON(&payloads); err != nil || len(payloads) == 0 {
+	var payloads MatchingReceipts
+	if err := c.ShouldBindJSON(&payloads); err != nil || len(payloads.MatchingReceipts) == 0 {
 		log.Printf("Invalid payload: %v", err)
 		c.JSON(http.StatusOK, gin.H{"message": "received"})
 		return
@@ -182,7 +182,7 @@ Energy Msg: %s`,
 				return
 			}
 		}
-	}(payloads[0], platform)
+	}(payloads.MatchingReceipts[0], platform)
 }
 
 func thresholdHandler(c *gin.Context) {
