@@ -336,3 +336,8 @@ func getAddressUSDT(addr string) (*big.Float, error) {
 
 	return parseTrc20AmountToFloat(resp.ConstantResult[0], 6) // USDT 小數 6 位
 }
+
+func getIndiaOrder(orderId string) {
+
+	return
+}

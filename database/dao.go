@@ -2,6 +2,11 @@ package database
 
 import "time"
 
+type Chat struct {
+	ID    int64
+	Title string
+}
+
 type EventHistory struct {
 	TransactionHash  string
 	USDT             string
