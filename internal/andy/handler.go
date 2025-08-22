@@ -215,12 +215,29 @@ func dailyReportHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{BName: countMap["b"], IName: countMap["i"]})
 }
 
-// TODO complete function
 func refreshHandler(c *gin.Context) {
+	var payload thresholdRequest
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	platform := c.Param("platform")
 	db := database.GetDB()
-	addresses, err := database.GetAddressesByPlatform(db, "b")
+	addresses, err := database.GetAddressesByPlatform(db, platform)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	var threshold float64
+	switch platform {
+	case "b":
+		threshold = payload.BThreshold
+	case "i":
+		threshold = payload.IThreshold
+	default:
+		c.JSON(http.StatusBadRequest, gin.H{"error": "platform not supported"})
 		return
 	}
 
@@ -238,7 +255,7 @@ func refreshHandler(c *gin.Context) {
 		}
 
 		walletUsdtFloat, _ := walletUsdt.Float64()
-		if walletUsdtFloat >= 1500 {
+		if walletUsdtFloat >= threshold {
 			AskEnergy(addr)
 		}
 	}
