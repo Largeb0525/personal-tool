@@ -13,6 +13,7 @@ import (
 	"github.com/Largeb0525/personal-tool/cmd"
 	"github.com/Largeb0525/personal-tool/database"
 	"github.com/Largeb0525/personal-tool/internal"
+	"github.com/Largeb0525/personal-tool/internal/external/telegram"
 
 	"github.com/spf13/viper"
 )
@@ -39,6 +40,8 @@ func main() {
 		Addr:    ":" + port,
 		Handler: router,
 	}
+
+	go telegram.StartBot()
 
 	go func() {
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
