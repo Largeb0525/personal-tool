@@ -337,7 +337,40 @@ func getAddressUSDT(addr string) (*big.Float, error) {
 	return parseTrc20AmountToFloat(resp.ConstantResult[0], 6) // USDT 小數 6 位
 }
 
-func getIndiaOrder(orderId string) {
+func getIndiaOrder(orderId string) (*IndiaOrder, error) {
+	url := fmt.Sprintf("https://india-api.jj-otc.com/api/orders/?merchant_order_id=%s", orderId)
 
-	return
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	req.Header.Set("Authorization", fmt.Sprintf("Api-Key %s", viper.GetString("andy.i.order_api_key")))
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("request failed: %w", err)
+	}
+	defer resp.Body.Close()
+
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response body: %w", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("API request failed with status code %d: %s", resp.StatusCode, string(bodyBytes))
+	}
+
+	var apiResponse IndiaOrderResponse
+	if err := json.Unmarshal(bodyBytes, &apiResponse); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal JSON response: %w", err)
+	}
+
+	if len(apiResponse.Results) == 0 {
+		return nil, errors.New("no results found for the given order ID")
+	}
+
+	return &apiResponse.Results[0], nil
 }

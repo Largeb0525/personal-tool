@@ -99,3 +99,54 @@ type thresholdRequest struct {
 	BThreshold float64 `json:"bThreshold"`
 	IThreshold float64 `json:"iThreshold"`
 }
+
+type IndiaOrderResponse struct {
+	Count    int         `json:"count"`
+	Next     *string     `json:"next"`
+	Previous *string     `json:"previous"`
+	Results  []IndiaOrder `json:"results"`
+}
+
+type IndiaOrder struct {
+	ID                     string  `json:"id"`
+	DisplayCryptoAmount    float64 `json:"displayCryptoAmount"`
+	DisplayFiatAmount      float64 `json:"displayFiatAmount"`
+	AdvertiserExchangeRate float64 `json:"advertiserExchangeRate"`
+	CustomerExchangeRate   float64 `json:"customerExchangeRate"`
+	CustomerHandlingFee    float64 `json:"customerHandlingFee"`
+	CustomerUsername       string  `json:"customerUsername"`
+	AdvertiserUsername     string  `json:"advertiserUsername"`
+	MarketName             string  `json:"marketName"`
+	UpiAccountInformation  *UpiAccountInformation `json:"upiAccountInformation"`
+	ImpsAccountInformation *interface{} `json:"impsAccountInformation"` // Use interface{} for null or unknown structure
+	AlipayAccountInformation *interface{} `json:"alipayAccountInformation"`
+	ECnyAccountInformation   *interface{} `json:"eCnyAccountInformation"`
+	MerchantOrderId        string  `json:"merchantOrderId"`
+	PayerName              string  `json:"payerName"`
+	UtrID                  *string `json:"utrId"`
+	TransactionReference   string  `json:"transactionReference"`
+	TransactionType        *string `json:"transactionType"`
+	OrderDatetime          string  `json:"orderDatetime"`
+	PaymentStatus          *string `json:"paymentStatus"`
+	OrderStatus            string  `json:"orderStatus"`
+	OrderStatusRecords     []OrderStatusRecord `json:"orderStatusRecords"`
+	OrderRiskControlStatus string  `json:"orderRiskControlStatus"`
+	Source                 string  `json:"source"`
+	CreatedAt              string  `json:"createdAt"`
+	UpdatedAt              string  `json:"updatedAt"`
+	CompletedAt            *string `json:"completedAt"`
+	CanceledAt             *string `json:"canceledAt"`
+}
+
+type UpiAccountInformation struct {
+	UpiID        string `json:"upiId"`
+	Name         string `json:"name"`
+	UploadFileUrl string `json:"uploadFileUrl"`
+	AccountUrl   string `json:"accountUrl"`
+}
+
+type OrderStatusRecord struct {
+	Status    string `json:"status"`
+	Operator  string `json:"operator"`
+	CreatedAt string `json:"createdAt"`
+}
