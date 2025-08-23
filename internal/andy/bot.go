@@ -117,6 +117,20 @@ func processMessage(ctx context.Context, b *bot.Bot, message *models.Message) {
 			msg += fmt.Sprintf("Order %s canceled.", orderInfo.MerchantOrderId)
 
 		case "已付款", "未付款", "争议中":
+			// Store pending order in DB
+			pendingOrder := database.PendingOrder{
+				MerchantOrderID:    orderInfo.MerchantOrderId,
+				CustomerUsername:  orderInfo.CustomerUsername,
+				AdvertiserUsername: orderInfo.AdvertiserUsername,
+				OrderStatus:       orderInfo.OrderStatus,
+				DisplayFiatAmount: orderInfo.DisplayFiatAmount,
+				Retries:           0,
+				OriginalChatID:    message.Chat.ID,
+			}
+			if err := database.InsertPendingOrder(db, pendingOrder); err != nil {
+				log.Printf("Failed to insert pending order: %v", err)
+			}
+
 			chats, err := database.GetChatByTitle(db, orderInfo.AdvertiserUsername)
 			if err != nil {
 				log.Printf("Failed to get err: %v", err)

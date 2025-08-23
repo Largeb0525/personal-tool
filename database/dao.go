@@ -25,3 +25,15 @@ type DelegateRecord struct {
 	Undelegated     bool
 	CreatedAt       time.Time
 }
+
+type PendingOrder struct {
+	MerchantOrderID    string
+	CustomerUsername   string
+	AdvertiserUsername string
+	OrderStatus        string
+	DisplayFiatAmount  float64
+	Retries            int
+	OriginalChatID     int64
+	CreatedAt          time.Time
+	UpdatedAt          time.Time
+}

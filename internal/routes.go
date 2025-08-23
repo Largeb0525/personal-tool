@@ -35,7 +35,6 @@ func InitRouter(ctx context.Context) (*gin.Engine, *cron.Cron) {
 			"tron_private_key":          maskStart(andy.TronPrivateKey),
 			"telegram_chat_id":          maskStart(telegram.TelegramChatId),
 			"telegram_critical_chat_id": maskStart(telegram.CriticalTelegramChatId),
-			"telegram_order_chat_id":    maskStart(telegram.OrderTelegramChatId),
 			"telegram_bot_token":        maskStart(telegram.TelegramBotToken),
 			"telegram_vault2_bot_token": maskStart(telegram.TelegramVault2BotToken),
 			"telegram_order_bot_token":  maskStart(telegram.TelegramOrderBotToken),
@@ -59,7 +58,6 @@ func fillParameters() {
 	andy.TronPrivateKey = viper.GetString("tron.private_key")
 	telegram.TelegramChatId = viper.GetString("andy.telegram.chat_id")
 	telegram.CriticalTelegramChatId = viper.GetString("andy.telegram.critical_chat_id")
-	telegram.OrderTelegramChatId = viper.GetString("andy.telegram.order_chat_id")
 	telegram.TelegramBotToken = viper.GetString("andy.telegram.bot_token")
 	telegram.TelegramVault2BotToken = viper.GetString("andy.telegram.vault2_bot_token")
 	telegram.TelegramOrderBotToken = viper.GetString("andy.telegram.order_bot_token")

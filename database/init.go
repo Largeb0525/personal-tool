@@ -125,5 +125,9 @@ func ensureTables(db *sql.DB) (err error) {
 		return
 	}
 	err = createChatTableIfNotExists(db)
+	if err != nil {
+		return
+	}
+	err = createPendingOrderTableIfNotExists(db)
 	return
 }

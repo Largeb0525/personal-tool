@@ -20,6 +20,8 @@ const (
 	UndelegateEnergySchedule = "0 * * * *"
 	// Vault2BotSchedule runs every hour at minute 55
 	Vault2BotSchedule = "55 * * * *"
+	// CheckPendingOrdersSchedule runs every minute
+	CheckPendingOrdersSchedule = "* * * * *"
 )
 
 func StartCronJobs(ctx context.Context) *cron.Cron {
@@ -36,6 +38,11 @@ func StartCronJobs(ctx context.Context) *cron.Cron {
 	}
 
 	_, err = c.AddFunc(Vault2BotSchedule, vault2BotJob)
+	if err != nil {
+		panic(err)
+	}
+
+	_, err = c.AddFunc(CheckPendingOrdersSchedule, checkPendingOrdersJob)
 	if err != nil {
 		panic(err)
 	}
@@ -110,5 +117,84 @@ func vault2BotJob() {
 	err = telegram.SendTelegramMessage(message, "-829676684", telegram.TelegramVault2BotToken)
 	if err != nil {
 		log.Printf("Failed to send Telegram message: %v", err)
+	}
+}
+
+func checkPendingOrdersJob() {
+	db := database.GetDB()
+	orders, err := database.GetPendingOrders(db)
+	if err != nil {
+		log.Printf("Failed to get pending orders: %v", err)
+		return
+	}
+
+	for _, order := range orders {
+		if order.Retries >= 20 {
+			log.Printf("Order %s reached max retries. Deleting.", order.MerchantOrderID)
+			if err := database.DeletePendingOrder(db, order.MerchantOrderID); err != nil {
+				log.Printf("Failed to delete pending order %s: %v", order.MerchantOrderID, err)
+			}
+			continue
+		}
+
+		latestOrderInfo, err := getIndiaOrder(order.MerchantOrderID)
+		if err != nil {
+			log.Printf("Failed to get latest order info for %s: %v", order.MerchantOrderID, err)
+			if err := database.IncrementPendingOrderRetries(db, order.MerchantOrderID); err != nil {
+				log.Printf("Failed to increment retries for %s: %v", order.MerchantOrderID, err)
+			}
+			continue
+		}
+
+		msg := ""
+		var chatId int64
+
+		switch latestOrderInfo.OrderStatus {
+		case "已完成":
+			chats, err := database.GetChatByTitle(db, latestOrderInfo.CustomerUsername)
+			if err != nil {
+				log.Printf("Failed to get chat by title: %v", err)
+			}
+			if len(chats) == 0 {
+				chatId = order.OriginalChatID
+				msg = fmt.Sprintf("Cannot find the target chat room\nPlease remind customer %s\n", latestOrderInfo.AdvertiserUsername)
+			} else {
+				chatId = chats[0].ID
+			}
+			msg += fmt.Sprintf("Order %s completed.", latestOrderInfo.MerchantOrderId)
+
+			if err := telegram.SendTelegramMessage(msg, fmt.Sprintf("%d", chatId), telegram.TelegramOrderBotToken); err != nil {
+				log.Printf("Failed to send Telegram message for completed order: %v", err)
+			}
+			if err := database.DeletePendingOrder(db, order.MerchantOrderID); err != nil {
+				log.Printf("Failed to delete completed pending order %s: %v", order.MerchantOrderID, err)
+			}
+
+		case "已取消":
+			chats, err := database.GetChatByTitle(db, latestOrderInfo.CustomerUsername)
+			if err != nil {
+				log.Printf("Failed to get chat by title: %v", err)
+			}
+			if len(chats) == 0 {
+				chatId = order.OriginalChatID
+				msg = fmt.Sprintf("Cannot find the target chat room\nPlease remind customer %s\n", latestOrderInfo.AdvertiserUsername)
+			} else {
+				chatId = chats[0].ID
+			}
+			msg += fmt.Sprintf("Order %s canceled.", latestOrderInfo.MerchantOrderId)
+
+			if err := telegram.SendTelegramMessage(msg, fmt.Sprintf("%d", chatId), telegram.TelegramOrderBotToken); err != nil {
+				log.Printf("Failed to send Telegram message for canceled order: %v", err)
+			}
+			if err := database.DeletePendingOrder(db, order.MerchantOrderID); err != nil {
+				log.Printf("Failed to delete canceled pending order %s: %v", order.MerchantOrderID, err)
+			}
+
+		case "已付款", "未付款", "争议中":
+			if err := database.IncrementPendingOrderRetries(db, order.MerchantOrderID); err != nil {
+				log.Printf("Failed to increment retries for %s: %v", order.MerchantOrderID, err)
+			}
+			continue
+		}
 	}
 }
