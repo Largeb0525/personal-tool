@@ -171,21 +171,6 @@ func checkPendingOrdersJob() {
 			}
 
 		case "已取消":
-			chats, err := database.GetChatByTitle(db, latestOrderInfo.CustomerUsername)
-			if err != nil {
-				log.Printf("Failed to get chat by title: %v", err)
-			}
-			if len(chats) == 0 {
-				chatId = order.OriginalChatID
-				msg = fmt.Sprintf("Cannot find the target chat room\nPlease remind customer %s\n", latestOrderInfo.AdvertiserUsername)
-			} else {
-				chatId = chats[0].ID
-			}
-			msg += fmt.Sprintf("Order %s canceled.", latestOrderInfo.MerchantOrderId)
-
-			if err := telegram.SendTelegramMessage(msg, fmt.Sprintf("%d", chatId), telegram.TelegramOrderBotToken); err != nil {
-				log.Printf("Failed to send Telegram message for canceled order: %v", err)
-			}
 			if err := database.DeletePendingOrder(db, order.MerchantOrderID); err != nil {
 				log.Printf("Failed to delete canceled pending order %s: %v", order.MerchantOrderID, err)
 			}

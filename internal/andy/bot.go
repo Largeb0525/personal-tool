@@ -108,7 +108,7 @@ func processMessage(ctx context.Context, b *bot.Bot, message *models.Message) {
 			msg += fmt.Sprintf("Order %s completed.", orderInfo.MerchantOrderId)
 
 		case "已取消":
-			chats, err := database.GetChatByTitle(db, orderInfo.CustomerUsername)
+			chats, err := database.GetChatByTitle(db, orderInfo.AdvertiserUsername)
 			if err != nil {
 				log.Printf("Failed to get err: %v", err)
 			}
@@ -118,7 +118,7 @@ func processMessage(ctx context.Context, b *bot.Bot, message *models.Message) {
 			} else {
 				chatId = chats[0].ID
 			}
-			msg += fmt.Sprintf("Order %s canceled.", orderInfo.MerchantOrderId)
+			msg += fmt.Sprintf("Order %s canceled.", orderInfo.ID)
 
 		case "已付款", "未付款", "争议中":
 			// Store pending order in DB
