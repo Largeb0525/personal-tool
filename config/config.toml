@@ -18,10 +18,17 @@
     url = "https://test.com"
     merchant_id = "jkl"
     api_key = "mnb"
+    order_api_key = "qwe"
+
+[andy.wallet]
+    vault2_address = "zxc"
 
 [andy.telegram]
     chat_id = "12345"
+    critical_chat_id = "12345"
     bot_token = "123:asd-zxc"
+    vault2_bot_token = "123:asd-zxc"
+    order_bot_token = "123:asd-zxc"
 
 [andy.energy]
     url = "https://test.com"
