@@ -145,7 +145,7 @@ func processMessage(ctx context.Context, b *bot.Bot, message *models.Message) {
 			} else {
 				chatId = chats[0].ID
 			}
-			msg += fmt.Sprintf("Here are order %s need to confirm. Amount is %f Jcoin. Please check ASAP.", orderInfo.MerchantOrderId, orderInfo.DisplayFiatAmount)
+			msg += fmt.Sprintf("Here are order %s need to confirm. Amount is %f Jcoin. Please check ASAP.", orderInfo.ID, orderInfo.DisplayFiatAmount)
 		}
 
 		if message.ReplyToMessage.Photo != nil && len(message.ReplyToMessage.Photo) > 0 {
