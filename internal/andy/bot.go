@@ -77,7 +77,11 @@ func processNewChatTitle(chatID int64, newTitle string) {
 
 func processMessage(ctx context.Context, b *bot.Bot, message *models.Message) {
 	if message.ReplyToMessage != nil && message.Text == "2" {
-		orderInfo, err := getIndiaOrder(message.ReplyToMessage.Text)
+		orderId := message.ReplyToMessage.Text
+		if message.ReplyToMessage.Photo != nil && len(message.ReplyToMessage.Photo) > 0 {
+			orderId = message.ReplyToMessage.Caption
+		}
+		orderInfo, err := getIndiaOrder(orderId)
 		if err != nil {
 			b.SendMessage(ctx, &bot.SendMessageParams{
 				ChatID: message.Chat.ID,
@@ -120,12 +124,12 @@ func processMessage(ctx context.Context, b *bot.Bot, message *models.Message) {
 			// Store pending order in DB
 			pendingOrder := database.PendingOrder{
 				MerchantOrderID:    orderInfo.MerchantOrderId,
-				CustomerUsername:  orderInfo.CustomerUsername,
+				CustomerUsername:   orderInfo.CustomerUsername,
 				AdvertiserUsername: orderInfo.AdvertiserUsername,
-				OrderStatus:       orderInfo.OrderStatus,
-				DisplayFiatAmount: orderInfo.DisplayFiatAmount,
-				Retries:           0,
-				OriginalChatID:    message.Chat.ID,
+				OrderStatus:        orderInfo.OrderStatus,
+				DisplayFiatAmount:  orderInfo.DisplayFiatAmount,
+				Retries:            0,
+				OriginalChatID:     message.Chat.ID,
 			}
 			if err := database.InsertPendingOrder(db, pendingOrder); err != nil {
 				log.Printf("Failed to insert pending order: %v", err)
@@ -144,9 +148,19 @@ func processMessage(ctx context.Context, b *bot.Bot, message *models.Message) {
 			msg += fmt.Sprintf("Here are order %s need to confirm. Amount is %f Jcoin. Please check ASAP.", orderInfo.MerchantOrderId, orderInfo.DisplayFiatAmount)
 		}
 
-		b.SendMessage(ctx, &bot.SendMessageParams{
-			ChatID: chatId,
-			Text:   msg,
-		})
+		if message.ReplyToMessage.Photo != nil && len(message.ReplyToMessage.Photo) > 0 {
+			// Send photo with caption
+			b.SendPhoto(ctx, &bot.SendPhotoParams{
+				ChatID:  chatId,
+				Photo:   &models.InputFileString{Data: message.ReplyToMessage.Photo[len(message.ReplyToMessage.Photo)-1].FileID},
+				Caption: msg,
+			})
+		} else {
+			// Send text message
+			b.SendMessage(ctx, &bot.SendMessageParams{
+				ChatID: chatId,
+				Text:   msg,
+			})
+		}
 	}
 }
