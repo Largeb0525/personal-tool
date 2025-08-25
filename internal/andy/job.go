@@ -163,9 +163,17 @@ func checkPendingOrdersJob() {
 			}
 			msg += fmt.Sprintf("Order %s completed.", latestOrderInfo.MerchantOrderId)
 
-			if err := telegram.SendTelegramMessage(msg, fmt.Sprintf("%d", chatId), telegram.TelegramOrderBotToken); err != nil {
-				log.Printf("Failed to send Telegram message for completed order: %v", err)
+			// Check if the target chat is the same as the original chat
+			if chatId == order.OriginalChatID {
+				if err := telegram.SendReplyTelegramMessage(msg, fmt.Sprintf("%d", chatId), telegram.TelegramOrderBotToken, int(order.ReplyToMessageID)); err != nil {
+					log.Printf("Failed to send reply Telegram message for completed order: %v", err)
+				}
+			} else {
+				if err := telegram.SendTelegramMessage(msg, fmt.Sprintf("%d", chatId), telegram.TelegramOrderBotToken); err != nil {
+					log.Printf("Failed to send Telegram message for completed order: %v", err)
+				}
 			}
+
 			if err := database.DeletePendingOrder(db, order.MerchantOrderID); err != nil {
 				log.Printf("Failed to delete completed pending order %s: %v", order.MerchantOrderID, err)
 			}

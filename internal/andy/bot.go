@@ -78,7 +78,8 @@ func processNewChatTitle(chatID int64, newTitle string) {
 func processMessage(ctx context.Context, b *bot.Bot, message *models.Message) {
 	if message.ReplyToMessage != nil && message.Text == "2" {
 		orderId := message.ReplyToMessage.Text
-		if message.ReplyToMessage.Photo != nil && len(message.ReplyToMessage.Photo) > 0 {
+		// if the reply message contains a photo or file
+		if message.ReplyToMessage.Caption != "" {
 			orderId = message.ReplyToMessage.Caption
 		}
 		orderInfo, err := getIndiaOrder(orderId)
@@ -121,7 +122,6 @@ func processMessage(ctx context.Context, b *bot.Bot, message *models.Message) {
 			msg += fmt.Sprintf("Order %s canceled.", orderInfo.ID)
 
 		case "已付款", "未付款", "争议中":
-			// Store pending order in DB
 			pendingOrder := database.PendingOrder{
 				MerchantOrderID:    orderInfo.MerchantOrderId,
 				CustomerUsername:   orderInfo.CustomerUsername,
@@ -130,6 +130,7 @@ func processMessage(ctx context.Context, b *bot.Bot, message *models.Message) {
 				DisplayFiatAmount:  orderInfo.DisplayFiatAmount,
 				Retries:            0,
 				OriginalChatID:     message.Chat.ID,
+				ReplyToMessageID:   int64(message.ReplyToMessage.ID),
 			}
 			if err := database.InsertPendingOrder(db, pendingOrder); err != nil {
 				log.Printf("Failed to insert pending order: %v", err)
@@ -148,19 +149,14 @@ func processMessage(ctx context.Context, b *bot.Bot, message *models.Message) {
 			msg += fmt.Sprintf("Here are order %s need to confirm. Amount is %f Jcoin. Please check ASAP.", orderInfo.ID, orderInfo.DisplayFiatAmount)
 		}
 
-		if message.ReplyToMessage.Photo != nil && len(message.ReplyToMessage.Photo) > 0 {
-			// Send photo with caption
-			b.SendPhoto(ctx, &bot.SendPhotoParams{
-				ChatID:  chatId,
-				Photo:   &models.InputFileString{Data: message.ReplyToMessage.Photo[len(message.ReplyToMessage.Photo)-1].FileID},
-				Caption: msg,
-			})
-		} else {
-			// Send text message
-			b.SendMessage(ctx, &bot.SendMessageParams{
-				ChatID: chatId,
-				Text:   msg,
-			})
+		sendMessageParams := &bot.SendMessageParams{
+			ChatID: chatId,
+			Text:   msg,
 		}
+		if chatId == message.Chat.ID {
+			// reply to the original message
+			sendMessageParams.ReplyParameters = &models.ReplyParameters{MessageID: message.ReplyToMessage.ID}
+		}
+		b.SendMessage(ctx, sendMessageParams)
 	}
 }

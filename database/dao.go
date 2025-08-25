@@ -34,6 +34,7 @@ type PendingOrder struct {
 	DisplayFiatAmount  float64
 	Retries            int
 	OriginalChatID     int64
+	ReplyToMessageID   int64
 	CreatedAt          time.Time
 	UpdatedAt          time.Time
 }

@@ -16,6 +16,7 @@ func createPendingOrderTableIfNotExists(db *sql.DB) error {
 		display_fiat_amount DOUBLE NOT NULL,
 		retries INT DEFAULT 0,
 		original_chat_id BIGINT NOT NULL,
+		reply_to_message_id BIGINT NOT NULL,
 		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 		updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 	);`
@@ -31,24 +32,25 @@ func InsertPendingOrder(db *sql.DB, order PendingOrder) error {
 	query := `
 	INSERT INTO pending_order (
 		merchant_order_id, customer_username, advertiser_username,
-		order_status, display_fiat_amount, retries, original_chat_id
-	) VALUES (?, ?, ?, ?, ?, ?, ?)
+		order_status, display_fiat_amount, retries, original_chat_id, reply_to_message_id
+	) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 	ON DUPLICATE KEY UPDATE
 		customer_username = VALUES(customer_username),
 		advertiser_username = VALUES(advertiser_username),
 		order_status = VALUES(order_status),
 		display_fiat_amount = VALUES(display_fiat_amount),
 		retries = VALUES(retries),
-		original_chat_id = VALUES(original_chat_id);
+		original_chat_id = VALUES(original_chat_id),
+		reply_to_message_id = VALUES(reply_to_message_id);
 	`
 	_, err := db.Exec(query,
 		order.MerchantOrderID, order.CustomerUsername, order.AdvertiserUsername,
-		order.OrderStatus, order.DisplayFiatAmount, order.Retries, order.OriginalChatID)
+		order.OrderStatus, order.DisplayFiatAmount, order.Retries, order.OriginalChatID, order.ReplyToMessageID)
 	return err
 }
 
 func GetPendingOrders(db *sql.DB) ([]PendingOrder, error) {
-	query := `SELECT merchant_order_id, customer_username, advertiser_username, order_status, display_fiat_amount, retries, original_chat_id, created_at, updated_at FROM pending_order`
+	query := `SELECT merchant_order_id, customer_username, advertiser_username, order_status, display_fiat_amount, retries, original_chat_id, reply_to_message_id, created_at, updated_at FROM pending_order`
 	rows, err := db.Query(query)
 	if err != nil {
 		return nil, err
@@ -60,7 +62,7 @@ func GetPendingOrders(db *sql.DB) ([]PendingOrder, error) {
 		var order PendingOrder
 		if err := rows.Scan(
 			&order.MerchantOrderID, &order.CustomerUsername, &order.AdvertiserUsername,
-			&order.OrderStatus, &order.DisplayFiatAmount, &order.Retries, &order.OriginalChatID,
+			&order.OrderStatus, &order.DisplayFiatAmount, &order.Retries, &order.OriginalChatID, &order.ReplyToMessageID,
 			&order.CreatedAt, &order.UpdatedAt,
 		); err != nil {
 			return nil, err
