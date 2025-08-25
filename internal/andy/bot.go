@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/Largeb0525/personal-tool/database"
 	"github.com/Largeb0525/personal-tool/internal/external/telegram"
@@ -76,11 +77,15 @@ func processNewChatTitle(chatID int64, newTitle string) {
 }
 
 func processMessage(ctx context.Context, b *bot.Bot, message *models.Message) {
-	if message.ReplyToMessage != nil && message.Text == "2" {
+	textArr := strings.Split(message.Text, " ")
+	if message.ReplyToMessage != nil && textArr[0] == "2" {
 		orderId := message.ReplyToMessage.Text
 		// if the reply message contains a photo or file
 		if message.ReplyToMessage.Caption != "" {
 			orderId = message.ReplyToMessage.Caption
+		}
+		if len(textArr) > 1 {
+			orderId = textArr[1]
 		}
 		orderInfo, err := getIndiaOrder(orderId)
 		if err != nil {
@@ -149,14 +154,37 @@ func processMessage(ctx context.Context, b *bot.Bot, message *models.Message) {
 			msg += fmt.Sprintf("Here are order %s need to confirm. Amount is %f Jcoin. Please check ASAP.", orderInfo.ID, orderInfo.DisplayFiatAmount)
 		}
 
-		sendMessageParams := &bot.SendMessageParams{
-			ChatID: chatId,
-			Text:   msg,
-		}
 		if chatId == message.Chat.ID {
 			// reply to the original message
-			sendMessageParams.ReplyParameters = &models.ReplyParameters{MessageID: message.ReplyToMessage.ID}
+			sendMessageParams := &bot.SendMessageParams{
+				ChatID:          chatId,
+				Text:            msg,
+				ReplyParameters: &models.ReplyParameters{MessageID: message.ReplyToMessage.ID},
+			}
+			b.SendMessage(ctx, sendMessageParams)
+		} else {
+			if message.ReplyToMessage.Photo != nil && len(message.ReplyToMessage.Photo) > 0 {
+				// Send photo with caption
+				b.SendPhoto(ctx, &bot.SendPhotoParams{
+					ChatID:  chatId,
+					Photo:   &models.InputFileString{Data: message.ReplyToMessage.Photo[len(message.ReplyToMessage.Photo)-1].FileID},
+					Caption: msg,
+				})
+				return
+			}
+			if message.ReplyToMessage.Document != nil {
+				// Send document with caption
+				b.SendDocument(ctx, &bot.SendDocumentParams{
+					ChatID:   chatId,
+					Document: &models.InputFileString{Data: message.ReplyToMessage.Document.FileID},
+					Caption:  msg,
+				})
+				return
+			}
+			b.SendMessage(ctx, &bot.SendMessageParams{
+				ChatID: chatId,
+				Text:   msg,
+			})
 		}
-		b.SendMessage(ctx, sendMessageParams)
 	}
 }
