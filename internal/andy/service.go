@@ -337,8 +337,8 @@ func getAddressUSDT(addr string) (*big.Float, error) {
 	return parseTrc20AmountToFloat(resp.ConstantResult[0], 6) // USDT 小數 6 位
 }
 
-func getIndiaOrder(orderId string) (*IndiaOrder, error) {
-	url := fmt.Sprintf("https://india-api.jj-otc.com/api/orders/?merchant_order_id=%s", orderId)
+func getIndiaOrder(orderId string, queryType string) (*IndiaOrder, error) {
+	url := fmt.Sprintf("https://india-api.jj-otc.com/api/orders/?%s=%s", queryType, orderId)
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {

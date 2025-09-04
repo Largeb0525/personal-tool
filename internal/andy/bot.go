@@ -78,16 +78,31 @@ func processNewChatTitle(chatID int64, newTitle string) {
 
 func processMessage(ctx context.Context, b *bot.Bot, message *models.Message) {
 	textArr := strings.Split(message.Text, " ")
-	if message.ReplyToMessage != nil && textArr[0] == "2" {
-		orderId := message.ReplyToMessage.Text
-		// if the reply message contains a photo or file
-		if message.ReplyToMessage.Caption != "" {
-			orderId = message.ReplyToMessage.Caption
+	if message.ReplyToMessage != nil {
+		queryType := ""
+		orderId := ""
+		if textArr[0] == "2" {
+			queryType = "merchant_order_id"
+			orderId = message.ReplyToMessage.Text
+			// if the reply message contains a photo or file
+			if message.ReplyToMessage.Caption != "" {
+				orderId = message.ReplyToMessage.Caption
+			}
+			if len(textArr) > 1 {
+				orderId = textArr[1]
+			}
+		} else if textArr[0] == "3" {
+			queryType = "search"
+			if len(textArr) > 1 {
+				orderId = textArr[1]
+			} else {
+				return
+			}
+		} else {
+			return
 		}
-		if len(textArr) > 1 {
-			orderId = textArr[1]
-		}
-		orderInfo, err := getIndiaOrder(orderId)
+
+		orderInfo, err := getIndiaOrder(orderId, queryType)
 		if err != nil {
 			b.SendMessage(ctx, &bot.SendMessageParams{
 				ChatID: message.Chat.ID,

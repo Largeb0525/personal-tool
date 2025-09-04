@@ -137,7 +137,7 @@ func checkPendingOrdersJob() {
 			continue
 		}
 
-		latestOrderInfo, err := getIndiaOrder(order.MerchantOrderID)
+		latestOrderInfo, err := getIndiaOrder(order.MerchantOrderID, "merchant_order_id")
 		if err != nil {
 			log.Printf("Failed to get latest order info for %s: %v", order.MerchantOrderID, err)
 			if err := database.IncrementPendingOrderRetries(db, order.MerchantOrderID); err != nil {
