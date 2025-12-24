@@ -392,6 +392,45 @@ func freezeTRXHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
+func unfreezeTRXHandler(c *gin.Context) {
+	var payload struct {
+		Trx int64 `json:"trx"`
+	}
+
+	err := c.ShouldBindJSON(&payload)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	tx, err := unfreezeBalance(payload.Trx)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	sign, err := signTransaction(tx.TxID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	broadcastReq := quickNode.BroadcastRequest{
+		TxID:       tx.TxID,
+		RawData:    tx.RawData,
+		RawDataHex: tx.RawDataHex,
+		Signature:  sign,
+		Visible:    true,
+	}
+	resp, err := quickNode.BroadcastTransaction(broadcastReq)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, resp)
+}
+
 func delegateResourceHandler(c *gin.Context) {
 	var payload struct {
 		Address string `json:"address"`

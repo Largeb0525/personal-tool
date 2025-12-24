@@ -33,6 +33,13 @@ type FreezeRequest struct {
 	Visible       bool   `json:"visible"`
 }
 
+type UnfreezeRequest struct {
+	OwnerAddress    string `json:"owner_address,required"`
+	Resource        string `json:"resource,required"`
+	UnfreezeBalance int64  `json:"unfreeze_balance,required"`
+	Visible         bool   `json:"visible"`
+}
+
 type Transaction struct {
 	Visible    bool                   `json:"visible"`
 	TxID       string                 `json:"txid"`

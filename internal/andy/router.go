@@ -14,6 +14,7 @@ func AndyRouter(r *gin.Engine) {
 		routerGroup.POST("/refresh/:platform", refreshHandler)
 		routerGroup.POST("/upload/address/:platform", uploadAddressCsvFileHandler)
 		routerGroup.POST("/freezeTRX", freezeTRXHandler)
+		routerGroup.POST("/unfreezeTRX", unfreezeTRXHandler)
 		routerGroup.POST("/delegate/resource", delegateResourceHandler)
 		routerGroup.POST("/undelegate/resource", undelegateResourceHandler)
 		routerGroup.GET("/all-usdt", getAllAddressUSDTHandler)

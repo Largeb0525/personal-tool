@@ -206,6 +206,23 @@ func freezeBalance(balance int64) (quickNode.Transaction, error) {
 	return tx, err
 }
 
+func unfreezeBalance(balance int64) (quickNode.Transaction, error) {
+	req := quickNode.UnfreezeRequest{
+		OwnerAddress:    EnergyAddress,
+		Resource:        "ENERGY",
+		UnfreezeBalance: balance,
+		Visible:         true,
+	}
+
+	tx, err := quickNode.CreateUnfreezeTx(req)
+	if err != nil {
+		log.Println(err)
+		return tx, err
+	}
+	log.Printf("unfreeze tx: %v", tx)
+	return tx, err
+}
+
 func delegateResource(receiverAddress string) (quickNode.Transaction, error) {
 	req := quickNode.DelegateResourceRequest{
 		OwnerAddress:    EnergyAddress,
