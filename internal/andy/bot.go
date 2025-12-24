@@ -78,6 +78,24 @@ func processNewChatTitle(chatID int64, newTitle string) {
 
 func processMessage(ctx context.Context, b *bot.Bot, message *models.Message) {
 	textArr := strings.Split(message.Text, " ")
+	if textArr[0] == "/upi" {
+		if len(textArr) > 1 {
+			_, err := getIndiaOrder(textArr[1], "search")
+			if err != nil || textArr[1] == "" {
+				b.SendMessage(ctx, &bot.SendMessageParams{
+					ChatID: message.Chat.ID,
+					Text:   "This UPI ID : <" + textArr[1] + "> does not exist",
+				})
+				return
+			}
+
+			b.SendMessage(ctx, &bot.SendMessageParams{
+				ChatID: message.Chat.ID,
+				Text:   "This UPI ID : <" + textArr[1] + "> is exist",
+			})
+			return
+		}
+	}
 	if message.ReplyToMessage != nil {
 		queryType := ""
 		orderId := ""
