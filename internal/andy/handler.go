@@ -116,11 +116,11 @@ func quickAlertsEventHandler(c *gin.Context) {
 
 		if usdtFloat >= threshold {
 			walletMsg = "amount >= threshold , ask energy"
-			energyMsg, orderID, askEnergySuccess, err = delegateEnergy(transactionData.ToAddress)
-			if err != nil {
-				log.Printf("Error while delegating energy: %v", err)
-				energyMsg, orderID, askEnergySuccess = AskEnergy(transactionData.ToAddress)
-			}
+			// energyMsg, orderID, askEnergySuccess, err = delegateEnergy(transactionData.ToAddress)
+			// if err != nil {
+			// log.Printf("Error while delegating energy: %v", err)
+			energyMsg, orderID, askEnergySuccess = AskEnergy(transactionData.ToAddress)
+			// }
 		} else {
 			walletUsdt, err := getAddressUSDT(transactionData.ToAddress)
 			if err != nil {
@@ -131,11 +131,11 @@ func quickAlertsEventHandler(c *gin.Context) {
 				walletUsdtFloat, _ := walletUsdt.Float64()
 				if walletUsdtFloat >= threshold {
 					walletMsg = walletUsdt.String()
-					energyMsg, orderID, askEnergySuccess, err = delegateEnergy(transactionData.ToAddress)
-					if err != nil {
-						log.Printf("Error while delegating energy: %v", err)
-						energyMsg, orderID, askEnergySuccess = AskEnergy(transactionData.ToAddress)
-					}
+					// energyMsg, orderID, askEnergySuccess, err = delegateEnergy(transactionData.ToAddress)
+					// if err != nil {
+					// log.Printf("Error while delegating energy: %v", err)
+					energyMsg, orderID, askEnergySuccess = AskEnergy(transactionData.ToAddress)
+					// }
 				} else {
 					walletMsg = walletUsdt.String()
 					energyMsg = "pass"

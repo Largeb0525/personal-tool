@@ -17,7 +17,7 @@ const (
 	// DailyReportSchedule runs every day at 15:58
 	DailyReportSchedule = "58 15 * * *"
 	// UndelegateEnergySchedule runs every hour at the beginning of the hour
-	UndelegateEnergySchedule = "0 * * * *"
+	// UndelegateEnergySchedule = "0 * * * *"
 	// Vault2BotSchedule runs every hour at minute 55
 	Vault2BotSchedule = "55 * * * *"
 	// CheckPendingOrdersSchedule runs every minute
@@ -32,10 +32,10 @@ func StartCronJobs(ctx context.Context) *cron.Cron {
 		panic(err)
 	}
 
-	_, err = c.AddFunc(UndelegateEnergySchedule, undelegateEnergyJob)
-	if err != nil {
-		panic(err)
-	}
+	// _, err = c.AddFunc(UndelegateEnergySchedule, undelegateEnergyJob)
+	// if err != nil {
+	// 	panic(err)
+	// }
 
 	_, err = c.AddFunc(Vault2BotSchedule, vault2BotJob)
 	if err != nil {
