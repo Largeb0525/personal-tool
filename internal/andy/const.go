@@ -9,6 +9,7 @@ const (
 var (
 	EnergyToken             = ""
 	EnergyUrl               = ""
+	EnergySecret            = ""
 	BName                   = ""
 	IName                   = ""
 	CollectAmong            = 3500.0

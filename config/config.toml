@@ -33,6 +33,7 @@
 [andy.energy]
     url = "https://test.com"
     token = "asd"
+    secret = "qwe"
 
 [database]
     host = "127.0.0.1"

@@ -31,6 +31,7 @@ func InitRouter(ctx context.Context) (*gin.Engine, *cron.Cron) {
 			"andy_i_name":               maskStart(andy.IName),
 			"energy_token":              maskStart(andy.EnergyToken),
 			"energy_url":                maskStart(andy.EnergyUrl),
+			"energy_secret":             maskStart(andy.EnergySecret),
 			"energy_address":            maskStart(andy.EnergyAddress),
 			"tron_private_key":          maskStart(andy.TronPrivateKey),
 			"telegram_chat_id":          maskStart(telegram.TelegramChatId),
@@ -54,6 +55,7 @@ func fillParameters() {
 	andy.IName = viper.GetString("andy.i.name")
 	andy.EnergyToken = viper.GetString("andy.energy.token")
 	andy.EnergyUrl = viper.GetString("andy.energy.url")
+	andy.EnergySecret = viper.GetString("andy.energy.secret")
 	andy.EnergyAddress = viper.GetString("tron.energy_address")
 	andy.TronPrivateKey = viper.GetString("tron.private_key")
 	telegram.TelegramChatId = viper.GetString("andy.telegram.chat_id")

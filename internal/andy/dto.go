@@ -87,12 +87,16 @@ type TronWalletFullResponse struct {
 	Count int         `json:"count"`
 }
 
+type AskEnergyData struct {
+	Id       int    `json:"Id"`
+	OptionId string `json:"optionId"`
+	Address  string `json:"address"`
+}
+
 type AskEnergyResponse struct {
-	Code      int                    `json:"code"`
-	Msg       string                 `json:"msg"`
-	Data      map[string]interface{} `json:"data"` // 如果你知道 data 裡的結構，也可以換成具體 struct
-	OrderID   string                 `json:"order_id"`
-	ErrorCode int                    `json:"error_code"`
+	Code int               `json:"code"`
+	Msg  string            `json:"msg"`
+	Data AskEnergyData     `json:"data"`
 }
 
 type thresholdRequest struct {

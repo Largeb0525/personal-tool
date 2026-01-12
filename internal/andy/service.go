@@ -2,7 +2,10 @@ package andy
 
 import (
 	"bytes"
+	"crypto/hmac"
 	"crypto/md5"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -10,7 +13,7 @@ import (
 	"log"
 	"math/big"
 	"net/http"
-	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
@@ -98,18 +101,35 @@ func parseTransactionData(receipt TransactionReceipt) (ParsedTransaction, error)
 }
 
 func AskEnergy(address string) (energyMsg string, orderID string, success bool) {
-	// 準備 form data
-	form := url.Values{}
-	form.Set("address", address)
-	form.Set("token", EnergyToken)
+	// 準備 JSON body
+	requestBody := map[string]string{
+		"address": address,
+	}
+	jsonBody, err := json.Marshal(requestBody)
+	if err != nil {
+		energyMsg = fmt.Sprintf("failed to marshal request body: %s", err.Error())
+		return
+	}
+
+	// 生成時間戳（秒）
+	timestamp := strconv.FormatInt(time.Now().Unix(), 10)
+
+	// 生成 HMAC SHA256 簽名
+	message := EnergyToken + timestamp
+	h := hmac.New(sha256.New, []byte(EnergySecret))
+	h.Write([]byte(message))
+	signature := hex.EncodeToString(h.Sum(nil))
 
 	// 建立 request
-	req, err := http.NewRequest("POST", EnergyUrl, bytes.NewBufferString(form.Encode()))
+	req, err := http.NewRequest("POST", EnergyUrl, bytes.NewBuffer(jsonBody))
 	if err != nil {
 		energyMsg = fmt.Sprintf("failed to create request: %s", err.Error())
 		return
 	}
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("x-api-key", EnergyToken)
+	req.Header.Set("x-timestamp", timestamp)
+	req.Header.Set("x-signature", signature)
 
 	// 發送 request
 	client := &http.Client{}
@@ -134,8 +154,8 @@ func AskEnergy(address string) (energyMsg string, orderID string, success bool) 
 			energyMsg = fmt.Sprintf("resp failed to parse JSON: %s", err.Error())
 			return
 		}
-		energyMsg = fmt.Sprintf("success, order id: %s", result.OrderID)
-		orderID = result.OrderID
+		orderID = strconv.Itoa(result.Data.Id)
+		energyMsg = fmt.Sprintf("success, order id: %s", orderID)
 		success = true
 		fmt.Printf("success, address:%s\n", address)
 		return
